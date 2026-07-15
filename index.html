@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOKYO HEROES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;700&family=Oswald:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --red: #c0001e;
+      --red-dark: #8a0015;
+      --white: #f0f0f0;
+      --grey: #888;
+      --dark-grey: #1a1a1a;
+      --black: #0a0a0a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Noto Sans JP', sans-serif;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--red); }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      z-index: 100;
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.4s, backdrop-filter 0.4s;
+    }
+
+    nav.scrolled {
+      background: rgba(10,10,10,0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(192,0,30,0.3);
+    }
+
+    .nav-logo {
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-logo-img {
+      width: 168px;
+      height: 48px;
+      object-fit: contain;
+      object-position: left center;
+      display: block;
+      transition: filter 0.25s;
+    }
+
+    .nav-logo:hover .nav-logo-img { filter: brightness(0) invert(1); }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 300;
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      color: var(--grey);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.25s;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0;
+      width: 0; height: 1px;
+      background: var(--red);
+      transition: width 0.3s;
+    }
+
+    .nav-links a:hover { color: var(--white); }
+    .nav-links a:hover::after { width: 100%; }
+
+    /* ─── HAMBURGER ─── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 36px;
+      height: 36px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      z-index: 201;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 100%;
+      height: 1px;
+      background: var(--white);
+      transition: transform 0.3s, opacity 0.3s;
+    }
+
+    .hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+    /* ─── MOBILE NAV ─── */
+    .mobile-nav {
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,10,0.97);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s;
+    }
+
+    .mobile-nav.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .mobile-nav a {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.6rem;
+      letter-spacing: 0.12em;
+      color: var(--white);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .mobile-nav a:hover { color: var(--red); }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      background: var(--black);
+    }
+
+    .hero-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      filter: brightness(0.55);
+      transform: scale(1.04);
+      transition: transform 8s ease-out;
+    }
+
+    .hero-img.loaded { transform: scale(1); }
+
+    /* Mobile hero slideshow — hidden on PC/tablet */
+    .hero-mobile-slideshow { display: none; }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(10,10,10,0.1) 0%,
+        rgba(10,10,10,0) 40%,
+        rgba(10,10,10,0.75) 80%,
+        rgba(10,10,10,1) 100%
+      );
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 0 60px 80px;
+      width: 100%;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 300;
+      letter-spacing: 0.4em;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.8s 0.3s forwards;
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(5rem, 12vw, 10rem);
+      line-height: 0.9;
+      letter-spacing: 0.04em;
+      color: var(--white);
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 0.8s 0.5s forwards;
+    }
+
+    .hero-title span { color: var(--red); }
+
+    .hero-sub {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      color: var(--grey);
+      margin-top: 20px;
+      text-transform: uppercase;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.8s 0.7s forwards;
+    }
+
+    /* ─── HERO CTA ─── */
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      margin-top: 36px;
+      flex-wrap: wrap;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.8s 0.9s forwards;
+    }
+
+    .hero-btn {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 13px 30px;
+      transition: all 0.25s;
+      white-space: nowrap;
+    }
+
+    .hero-btn-primary {
+      background: var(--red);
+      color: var(--white);
+      border: 1px solid var(--red);
+    }
+
+    .hero-btn-primary:hover {
+      background: var(--red-dark);
+      border-color: var(--red-dark);
+    }
+
+    .hero-btn-secondary {
+      background: transparent;
+      color: var(--white);
+      border: 1px solid rgba(240,240,240,0.35);
+    }
+
+    .hero-btn-secondary:hover { border-color: var(--white); }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 32px;
+      right: 60px;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      animation: fadeIn 1s 1.2s forwards;
+    }
+
+    .hero-scroll span {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--grey);
+      text-transform: uppercase;
+      writing-mode: vertical-rl;
+    }
+
+    .hero-scroll-line {
+      width: 1px;
+      height: 60px;
+      background: linear-gradient(to bottom, var(--red), transparent);
+      animation: lineGrow 1.5s 1.5s ease-in-out infinite;
+    }
+
+    @keyframes lineGrow {
+      0%, 100% { transform: scaleY(1); opacity: 1; }
+      50% { transform: scaleY(0.5); opacity: 0.4; }
+    }
+
+    /* ─── MARQUEE TICKER ─── */
+    .marquee-band {
+      background: var(--red);
+      overflow: hidden;
+      padding: 11px 0;
+      white-space: nowrap;
+    }
+
+    .marquee-inner {
+      display: inline-flex;
+      animation: marqueeScroll 22s linear infinite;
+    }
+
+    .marquee-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.25em;
+      color: rgba(255,255,255,0.92);
+      padding-right: 52px;
+    }
+
+    .marquee-sep {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      color: rgba(255,255,255,0.35);
+      padding-right: 52px;
+    }
+
+    @keyframes marqueeScroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ─── SECTION BASE ─── */
+    section { padding: 100px 60px; }
+
+    .section-header { margin-bottom: 60px; }
+
+    .section-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.5em;
+      color: var(--red);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .section-label::before {
+      content: '';
+      display: inline-block;
+      width: 30px;
+      height: 1px;
+      background: var(--red);
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      letter-spacing: 0.06em;
+      line-height: 1;
+      color: var(--white);
+      transition: text-shadow 0.4s;
+    }
+
+    .section-header:hover .section-title {
+      text-shadow: 0 0 48px rgba(192,0,30,0.35);
+    }
+
+    /* ─── SLIDESHOW ─── */
+    #slideshow {
+      background: var(--black);
+      padding: 40px 60px 0;
+    }
+
+    .slideshow-wrap {
+      display: grid;
+      max-width: 960px;
+      margin: 0 auto;
+      background: #0a0a0a;
+    }
+
+    .slide {
+      grid-area: 1 / 1;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    .slide.active { opacity: 1; }
+
+    .slide img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .slideshow-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .slideshow-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #333;
+      transition: background 0.3s;
+      cursor: pointer;
+    }
+
+    .slideshow-dot.active { background: var(--red); }
+
+    /* ─── VIDEOS ─── */
+    #videos {
+      background: var(--black);
+      padding: 80px 60px;
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .video-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #0a0a0a;
+      border: 1px solid #1f1f1f;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .video-wrap:hover { border-color: var(--red-dark); }
+
+    .video-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* ─── NEWS ─── */
+    #news {
+      background: var(--black);
+      border-top: 1px solid #1f1f1f;
+    }
+
+    .news-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .news-item {
+      display: grid;
+      grid-template-columns: 120px 80px 1fr;
+      align-items: center;
+      gap: 24px;
+      padding: 24px 0;
+      border-bottom: 1px solid #1c1c1c;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .news-item:hover { background: rgba(192,0,30,0.04); }
+
+    .news-date {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: var(--grey);
+    }
+
+    .news-tag {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--red);
+      border: 1px solid var(--red-dark);
+      padding: 2px 8px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .news-text {
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: var(--white);
+      letter-spacing: 0.05em;
+      transition: color 0.2s;
+    }
+
+    .news-item:hover .news-text { color: #fff; }
+
+    /* ─── LIVE ─── */
+    #live { background: var(--dark-grey); }
+
+    .live-year-separator {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 0.4em;
+      color: var(--red);
+      padding: 28px 0 4px;
+      border-top: 1px solid #2a2a2a;
+    }
+
+    .live-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .live-item {
+      display: grid;
+      grid-template-columns: 140px 1fr auto;
+      align-items: center;
+      gap: 40px;
+      padding: 32px 0;
+      border-bottom: 1px solid #2a2a2a;
+      transition: padding-left 0.25s;
+      cursor: pointer;
+    }
+
+    .live-item:hover { padding-left: 12px; }
+
+    .live-date-block { text-align: center; }
+
+    .live-day {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      line-height: 1;
+      color: var(--white);
+      letter-spacing: 0.02em;
+    }
+
+    .live-date-dow {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 300;
+      color: var(--red);
+      margin-top: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    .live-info h3 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+
+    .live-info p {
+      font-size: 0.8rem;
+      font-weight: 300;
+      color: var(--grey);
+      letter-spacing: 0.05em;
+    }
+
+    .live-btn {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      color: var(--white);
+      border: 1px solid #444;
+      padding: 10px 24px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.25s;
+      white-space: nowrap;
+    }
+
+    .live-btn:hover {
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    /* ─── MEMBERS ─── */
+    #members { background: var(--black); }
+
+    .members-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+    }
+
+    .member-card {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 3/4;
+      cursor: pointer;
+    }
+
+    .member-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+      filter: grayscale(60%) brightness(0.75);
+      transition: transform 0.6s ease, filter 0.6s ease;
+    }
+
+    .member-card:hover img {
+      transform: scale(1.06);
+      filter: grayscale(0%) brightness(0.85);
+    }
+
+    .member-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.2) 50%, transparent 100%);
+    }
+
+    .member-info {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 28px 24px;
+    }
+
+    .member-part {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 300;
+      letter-spacing: 0.4em;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .member-name-ja {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--white);
+      line-height: 1.2;
+    }
+
+    .member-name-en {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      color: var(--grey);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .member-hover-line {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--red);
+      transition: width 0.4s ease;
+    }
+
+    .member-card:hover .member-hover-line { width: 100%; }
+
+    /* ─── DISCOGRAPHY ─── */
+    #discography { background: var(--dark-grey); }
+
+    .disco-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+
+    .disco-card {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .disco-thumb {
+      width: 100%;
+      aspect-ratio: 1;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      transition: border-color 0.3s;
+    }
+
+    .disco-card:hover .disco-thumb { border-color: var(--red-dark); }
+
+    /* Vinyl rings */
+    .disco-thumb::before {
+      content: '';
+      position: absolute;
+      width: 70%;
+      height: 70%;
+      border-radius: 50%;
+      border: 1px solid #252525;
+      box-shadow:
+        0 0 0 9px #111,
+        0 0 0 10px #222,
+        0 0 0 22px #111,
+        0 0 0 23px #1e1e1e,
+        0 0 0 36px #111,
+        0 0 0 37px #1a1a1a;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+
+    .disco-card:hover .disco-thumb::before { opacity: 0.6; }
+
+    /* Center hole */
+    .disco-thumb::after {
+      content: '';
+      position: absolute;
+      width: 9%;
+      height: 9%;
+      border-radius: 50%;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .disco-thumb-inner {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.55rem;
+      color: rgba(255,255,255,0.1);
+      letter-spacing: 0.1em;
+      text-align: center;
+      line-height: 1.1;
+      user-select: none;
+      position: relative;
+      z-index: 1;
+      transition: color 0.4s;
+    }
+
+    .disco-card:hover .disco-thumb-inner { color: rgba(255,255,255,0.2); }
+
+    .disco-badge {
+      position: absolute;
+      top: 12px; left: 12px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: var(--white);
+      background: var(--red);
+      padding: 3px 8px;
+      text-transform: uppercase;
+      z-index: 3;
+    }
+
+    .disco-info { margin-top: 16px; }
+
+    .disco-type {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      color: var(--grey);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .disco-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--white);
+    }
+
+    .disco-date {
+      font-size: 0.78rem;
+      font-weight: 300;
+      color: var(--grey);
+      margin-top: 4px;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: #050505;
+      border-top: 1px solid #1a1a1a;
+      padding: 60px 60px 40px;
+    }
+
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 60px;
+    }
+
+    .footer-logo-img {
+      width: 200px;
+      height: 58px;
+      object-fit: contain;
+      object-position: left center;
+      display: block;
+    }
+
+    .footer-tagline {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      color: var(--grey);
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    .footer-social { display: flex; gap: 20px; }
+
+    .social-link {
+      width: 40px;
+      height: 40px;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--grey);
+      text-decoration: none;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.05em;
+      transition: all 0.25s;
+    }
+
+    .social-link:hover { border-color: var(--red); color: var(--red); }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #1a1a1a;
+      padding-top: 30px;
+    }
+
+    .footer-copy {
+      font-size: 0.72rem;
+      font-weight: 300;
+      color: #444;
+      letter-spacing: 0.1em;
+    }
+
+    .footer-nav { display: flex; gap: 28px; list-style: none; }
+
+    .footer-nav a {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      color: #444;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .footer-nav a:hover { color: var(--white); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── MEMBER MODAL ─── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+    .modal-container {
+      display: flex;
+      max-width: 860px;
+      width: 90%;
+      max-height: 88vh;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-top: 2px solid var(--red);
+      position: relative;
+      transform: translateY(24px) scale(0.98);
+      transition: transform 0.35s ease;
+      overflow: hidden;
+    }
+
+    .modal-overlay.active .modal-container { transform: translateY(0) scale(1); }
+
+    .modal-photo { width: 38%; flex-shrink: 0; overflow: hidden; }
+
+    .modal-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+
+    .modal-body {
+      flex: 1;
+      padding: 44px 40px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .modal-part {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 300;
+      letter-spacing: 0.5em;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .modal-name-ja {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+
+    .modal-name-en {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      color: var(--grey);
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    .modal-divider { width: 28px; height: 1px; background: var(--red); margin-bottom: 28px; }
+
+    .modal-profile { display: flex; flex-direction: column; gap: 13px; }
+
+    .modal-profile-item {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 12px;
+      align-items: baseline;
+    }
+
+    .modal-profile-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      color: var(--red);
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .modal-profile-value {
+      font-size: 0.84rem;
+      font-weight: 300;
+      color: var(--white);
+      letter-spacing: 0.04em;
+      line-height: 1.6;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 34px; height: 34px;
+      border: 1px solid #333;
+      background: none;
+      color: var(--grey);
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      z-index: 1;
+    }
+
+    .modal-close:hover { border-color: var(--red); color: var(--red); }
+
+    /* ─── LIVE MODAL ─── */
+    .live-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      backdrop-filter: blur(6px);
+    }
+
+    .live-modal-overlay.active { opacity: 1; pointer-events: all; }
+
+    .live-modal-container {
+      display: flex;
+      flex-direction: column;
+      max-width: 680px;
+      width: 90%;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-top: 2px solid var(--red);
+      transform: translateY(24px) scale(0.98);
+      transition: transform 0.35s ease;
+    }
+
+    .live-modal-overlay.active .live-modal-container { transform: translateY(0) scale(1); }
+
+    .live-modal-header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      justify-content: flex-end;
+      padding: 14px 14px 0;
+      background: #111;
+    }
+
+    .live-modal-close {
+      width: 34px; height: 34px;
+      border: 1px solid #333;
+      background: none;
+      color: var(--grey);
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .live-modal-close:hover { border-color: var(--red); color: var(--red); }
+
+    .live-modal-body { padding: 20px 40px 32px; }
+
+    .live-modal-eyebrow {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 300;
+      letter-spacing: 0.5em;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .live-modal-date {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.6rem;
+      line-height: 1;
+      color: var(--white);
+      letter-spacing: 0.03em;
+      margin-bottom: 10px;
+    }
+
+    .live-modal-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .live-modal-venue {
+      font-size: 0.8rem;
+      font-weight: 300;
+      color: var(--grey);
+      letter-spacing: 0.05em;
+      margin-bottom: 24px;
+    }
+
+    .live-modal-divider { width: 28px; height: 1px; background: var(--red); margin-bottom: 20px; }
+
+    .live-modal-rows { display: flex; flex-direction: column; gap: 14px; }
+
+    .live-modal-row {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 12px;
+      align-items: baseline;
+    }
+
+    .live-modal-row-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      color: var(--red);
+      text-transform: uppercase;
+    }
+
+    .live-modal-row-value {
+      font-size: 0.84rem;
+      font-weight: 300;
+      color: var(--white);
+      letter-spacing: 0.04em;
+      line-height: 1.6;
+    }
+
+    .live-modal-ticket-btn {
+      display: inline-block;
+      margin-top: 28px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      color: var(--white);
+      border: 1px solid #444;
+      padding: 12px 28px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.25s;
+    }
+
+    .live-modal-ticket-btn:hover { background: var(--red); border-color: var(--red); }
+
+    .live-modal-flyer { width: 100%; background: #0a0a0a; border-top: 1px solid #1f1f1f; }
+
+    .live-modal-flyer img { display: block; width: 100%; height: auto; }
+
+    /* ─── ITEM ─── */
+    #item { background: var(--black); border-top: 1px solid #1f1f1f; }
+
+    .item-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
+      max-width: 800px;
+    }
+
+    .item-card {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #1f1f1f;
+      transition: border-color 0.3s;
+    }
+
+    .item-card:hover { border-color: var(--red-dark); }
+
+    .item-img-wrap {
+      width: 100%;
+      aspect-ratio: 1;
+      background: #111;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .item-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 24px;
+      transition: transform 0.5s ease;
+    }
+
+    .item-card:hover .item-img-wrap img { transform: scale(1.04); }
+
+    .item-info {
+      padding: 20px 24px 24px;
+      border-top: 1px solid #1f1f1f;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .item-name { font-size: 0.92rem; font-weight: 700; letter-spacing: 0.1em; color: var(--white); }
+
+    .item-price {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      color: var(--red);
+    }
+
+    /* ─── NOISE TEXTURE ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.5;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1024px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+
+      .hero-img { display: none; }
+
+      .hero-mobile-slideshow {
+        display: block;
+        position: absolute;
+        inset: 0;
+      }
+
+      .hero-slide-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+        filter: brightness(0.55);
+        opacity: 0;
+        transition: opacity 1.2s ease;
+      }
+
+      .hero-slide-img.active { opacity: 1; }
+
+      section { padding: 70px 24px; }
+      #slideshow { padding: 28px 24px 0; }
+      #videos { padding: 60px 24px; }
+
+      .hero-content { padding: 0 24px 60px; }
+      .hero-scroll { display: none; }
+
+      .hero-cta { flex-direction: column; gap: 12px; }
+      .hero-btn { align-self: flex-start; }
+
+      .video-grid { grid-template-columns: 1fr; }
+
+      .news-item {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 8px 16px;
+        padding: 20px 0;
+      }
+      .news-date { grid-column: 1; grid-row: 1; }
+      .news-tag  { grid-column: 2; grid-row: 1; }
+      .news-text { grid-column: 1 / -1; grid-row: 2; font-size: 0.82rem; }
+
+      .live-item {
+        grid-template-columns: 80px 1fr;
+        grid-template-rows: auto auto;
+        gap: 12px 16px;
+        padding: 24px 0;
+      }
+      .live-item:hover { padding-left: 0; }
+      .live-date-block { grid-row: 1; grid-column: 1; text-align: left; }
+      .live-day { font-size: 2.2rem; }
+      .live-info { grid-row: 1; grid-column: 2; }
+      .live-btn { grid-row: 2; grid-column: 2; width: fit-content; padding: 8px 20px; }
+
+      .members-grid { grid-template-columns: repeat(2, 1fr); }
+
+      .disco-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+
+      .item-grid { grid-template-columns: 1fr; gap: 24px; }
+
+      footer { padding: 48px 24px 32px; }
+      .footer-top { flex-direction: column; gap: 28px; margin-bottom: 40px; }
+      .footer-bottom { flex-direction: column; gap: 14px; align-items: flex-start; }
+
+      .modal-container { flex-direction: column; width: 95%; max-height: 92vh; }
+      .modal-photo { width: 100%; height: 44vw; max-height: 220px; }
+      .modal-body { padding: 28px 24px; }
+
+      .live-modal-body { padding: 16px 24px 28px; }
+      .live-modal-container { width: 95%; max-height: 92vh; }
+    }
+
+    @media (max-width: 480px) {
+      .disco-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 390px) {
+      nav { padding: 0 16px; }
+
+      section { padding: 60px 16px; }
+      #slideshow { padding: 20px 16px 0; }
+      #videos { padding: 50px 16px; }
+
+      .hero-content { padding: 0 16px 48px; }
+      .hero-eyebrow { letter-spacing: 0.2em; }
+      .hero-sub { letter-spacing: 0.1em; font-size: 0.82rem; }
+
+      footer { padding: 40px 16px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MOBILE NAV OVERLAY -->
+  <div class="mobile-nav" id="mobileNav">
+    <a href="#news">News</a>
+    <a href="#live">Live</a>
+    <a href="#members">Members</a>
+    <a href="#discography">Discography</a>
+    <a href="#item">Item</a>
+  </div>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <a href="#" class="nav-logo">
+      <img class="nav-logo-img" src="images/logo/tokyoheroes_logo02_red.png?v=2" alt="TOKYO HEROES">
+    </a>
+    <ul class="nav-links">
+      <li><a href="#news">News</a></li>
+      <li><a href="#live">Live</a></li>
+      <li><a href="#members">Members</a></li>
+      <li><a href="#discography">Discography</a></li>
+      <li><a href="#item">Item</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="メニューを開く">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <img class="hero-img" src="images/hero/top_W7_2577.JPG" alt="TOKYO HEROES" id="heroImg">
+    <div class="hero-mobile-slideshow" id="heroMobileSlideshow">
+      <img class="hero-slide-img" src="images/hero/m_top/m_top_gokimi.jpg" alt="">
+      <img class="hero-slide-img" src="images/hero/m_top/m_top_masayoshi.jpg" alt="">
+      <img class="hero-slide-img" src="images/hero/m_top/m_top_oka.jpg" alt="">
+      <img class="hero-slide-img" src="images/hero/m_top/m_top_rinda.jpg" alt="">
+    </div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">Tokyo — est. 2019</p>
+      <h1 class="hero-title">TOKYO<br><span>HEROES</span></h1>
+      <p class="hero-sub">Rock / Metal &nbsp;|&nbsp; From Tokyo, Japan</p>
+      <div class="hero-cta">
+        <a href="#live" class="hero-btn hero-btn-primary">Live Info</a>
+        <a href="#videos" class="hero-btn hero-btn-secondary">Watch Now</a>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <div class="hero-scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- MARQUEE TICKER -->
+  <div class="marquee-band" aria-hidden="true">
+    <div class="marquee-inner">
+      <span class="marquee-text">TOKYO HEROES</span>
+      <span class="marquee-sep">—</span>
+      <span class="marquee-text">ROCK</span>
+      <span class="marquee-sep">—</span>
+      <span class="marquee-text">METAL</span>
+      <span class="marquee-sep">—</span>
+      <span class="marquee-text">FROM TOKYO</span>
+      <span class="marquee-sep">—</span>
+      <span class="marquee-text">EST. 2019</span>
+      <span class="marquee-sep">—</span>
+      <span class="marquee-text">DARK CITADEL</span>
+      <span class="marquee-sep">—</span>
+      <span class="marquee-text">TOKYO HEROES</span>
+      <span class="marquee-sep">—</span>
+      <span class="marquee-text">ROCK</span>
+      <span class="marquee-sep">—</span>
+      <span class="marquee-text">METAL</span>
+      <span class="marquee-sep">—</span>
+      <span class="marquee-text">FROM TOKYO</span>
+      <span class="marquee-sep">—</span>
+      <span class="marquee-text">EST. 2019</span>
+      <span class="marquee-sep">—</span>
+      <span class="marquee-text">DARK CITADEL</span>
+      <span class="marquee-sep">—</span>
+    </div>
+  </div>
+
+  <!-- SLIDESHOW -->
+  <section id="slideshow">
+    <div class="slideshow-wrap">
+      <div class="slide active">
+        <img src="images/live/20260725.png" alt="告知画像 2026.07.25">
+      </div>
+      <div class="slide">
+        <img src="images/live/20260830.png" alt="告知画像 2026.08.30">
+      </div>
+    </div>
+    <div class="slideshow-dots">
+      <div class="slideshow-dot active" data-index="0"></div>
+      <div class="slideshow-dot" data-index="1"></div>
+    </div>
+  </section>
+
+  <!-- NEWS -->
+  <section id="news">
+    <div class="section-header reveal">
+      <div class="section-label">Latest</div>
+      <h2 class="section-title">News</h2>
+    </div>
+    <div class="news-list">
+      <div class="news-item reveal">
+        <span class="news-date">2026.05.15</span>
+        <span class="news-tag">Release</span>
+        <span class="news-text">New Single「SHOCKWAVE」リリース決定！6月25日発売</span>
+      </div>
+      <div class="news-item reveal">
+        <span class="news-date">2026.04.28</span>
+        <span class="news-tag">Live</span>
+        <span class="news-text">7月ワンマンツアー「HEROES OR VILLAINS TOUR 2026」全公演チケット発売開始</span>
+      </div>
+      <div class="news-item reveal">
+        <span class="news-date">2026.04.01</span>
+        <span class="news-tag">Info</span>
+        <span class="news-text">オフィシャルファンクラブ「HEROES GROUND」4月より始動</span>
+      </div>
+      <div class="news-item reveal">
+        <span class="news-date">2026.03.12</span>
+        <span class="news-tag">Media</span>
+        <span class="news-text">MUSIC VIDEO「LAST HERO」YouTube公開 ―― 公開24時間で10万再生突破</span>
+      </div>
+      <div class="news-item reveal">
+        <span class="news-date">2026.02.20</span>
+        <span class="news-tag">Release</span>
+        <span class="news-text">2nd Album「DARK CITADEL」全国流通盤リリース</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIDEOS -->
+  <section id="videos">
+    <div class="section-header reveal">
+      <div class="section-label">Watch</div>
+      <h2 class="section-title">Video</h2>
+    </div>
+    <div class="video-grid">
+      <div class="video-wrap reveal">
+        <iframe src="https://www.youtube-nocookie.com/embed/0TXQOiZlI7g?si=P5iM3mwqhcfxJmva" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
+      <div class="video-wrap reveal">
+        <iframe src="https://www.youtube-nocookie.com/embed/kMR_ScMIDxY?si=PIBp6l5YsQTIeycq" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE -->
+  <section id="live">
+    <div class="section-header reveal">
+      <div class="section-label">Schedule</div>
+      <h2 class="section-title">Live</h2>
+    </div>
+    <!-- ライブ一覧は JS の liveData から生成。スプレッドシート連携時はデータ取得部分だけ差し替え -->
+    <div class="live-list" id="liveList"></div>
+  </section>
+
+  <!-- MEMBERS -->
+  <section id="members">
+    <div class="section-header reveal">
+      <div class="section-label">The Band</div>
+      <h2 class="section-title">Members</h2>
+    </div>
+    <div class="members-grid">
+      <div class="member-card reveal" data-member="gokimi">
+        <img src="images/members/ba_gokimi_W7_1288.JPG" alt="Ba. GOKIMI">
+        <div class="member-overlay"></div>
+        <div class="member-info">
+          <div class="member-part">Bass</div>
+          <div class="member-name-ja">ゴキミ。</div>
+          <div class="member-name-en">GOKIMI</div>
+        </div>
+        <div class="member-hover-line"></div>
+      </div>
+      <div class="member-card reveal" data-member="okazawa">
+        <img src="images/members/vo_okazawa_W7_1366.JPG" alt="Vo. OKAZAWA">
+        <div class="member-overlay"></div>
+        <div class="member-info">
+          <div class="member-part">Vocal</div>
+          <div class="member-name-ja">岡澤雅史</div>
+          <div class="member-name-en">OKAZAZAWA MASASHI</div>
+        </div>
+        <div class="member-hover-line"></div>
+      </div>
+      <div class="member-card reveal" data-member="masayoshi">
+        <img src="images/members/dr_masayoshi_W7_1318.JPG" alt="Dr. MASAYOSHI">
+        <div class="member-overlay"></div>
+        <div class="member-info">
+          <div class="member-part">Drums</div>
+          <div class="member-name-ja">masayoshi</div>
+          <div class="member-name-en">MASAYOSHI</div>
+        </div>
+        <div class="member-hover-line"></div>
+      </div>
+      <div class="member-card reveal" data-member="rinda">
+        <img src="images/members/gt_rinda_W7_1399.JPG" alt="Gt. RINDA">
+        <div class="member-overlay"></div>
+        <div class="member-info">
+          <div class="member-part">Guitar</div>
+          <div class="member-name-ja">リンダ</div>
+          <div class="member-name-en">RINDA</div>
+        </div>
+        <div class="member-hover-line"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DISCOGRAPHY -->
+  <section id="discography">
+    <div class="section-header reveal">
+      <div class="section-label">Works</div>
+      <h2 class="section-title">Discography</h2>
+    </div>
+    <div class="disco-grid">
+      <div class="disco-card reveal">
+        <div class="disco-thumb">
+          <div class="disco-thumb-inner">DARK<br>CITADEL</div>
+          <div class="disco-badge">New</div>
+        </div>
+        <div class="disco-info">
+          <div class="disco-type">2nd Album</div>
+          <div class="disco-title">DARK CITADEL</div>
+          <div class="disco-date">2026.02.20</div>
+        </div>
+      </div>
+      <div class="disco-card reveal">
+        <div class="disco-thumb">
+          <div class="disco-thumb-inner">LAST<br>HERO</div>
+        </div>
+        <div class="disco-info">
+          <div class="disco-type">Single</div>
+          <div class="disco-title">LAST HERO</div>
+          <div class="disco-date">2025.09.10</div>
+        </div>
+      </div>
+      <div class="disco-card reveal">
+        <div class="disco-thumb">
+          <div class="disco-thumb-inner">EMPIRE<br>OF ZERO</div>
+        </div>
+        <div class="disco-info">
+          <div class="disco-type">1st Album</div>
+          <div class="disco-title">EMPIRE OF ZERO</div>
+          <div class="disco-date">2024.11.06</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ITEM -->
+  <section id="item">
+    <div class="section-header reveal">
+      <div class="section-label">Goods</div>
+      <h2 class="section-title">Item</h2>
+    </div>
+    <div class="item-grid">
+      <div class="item-card reveal">
+        <div class="item-img-wrap">
+          <img src="images/ITEM/goods_face_t.png" alt="フェイスタオル">
+        </div>
+        <div class="item-info">
+          <div class="item-name">フェイスタオル</div>
+          <div class="item-price">¥ 2,500</div>
+        </div>
+      </div>
+      <div class="item-card reveal">
+        <div class="item-img-wrap">
+          <img src="images/ITEM/goods_rubber.png" alt="シリコンバンド">
+        </div>
+        <div class="item-info">
+          <div class="item-name">シリコンバンド</div>
+          <div class="item-price">各 ¥ 1,000</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-top">
+      <div>
+        <img class="footer-logo-img" src="images/logo/tokyoheroes_logo02_red.png?v=2" alt="TOKYO HEROES">
+        <div class="footer-tagline">Official Website</div>
+      </div>
+      <div class="footer-social">
+        <a href="#" class="social-link">TW</a>
+        <a href="#" class="social-link">IG</a>
+        <a href="#" class="social-link">YT</a>
+        <a href="#" class="social-link">TK</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">&copy; 2026 TOKYO HEROES. All Rights Reserved.</p>
+      <ul class="footer-nav">
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <!-- LIVE MODAL -->
+  <div class="live-modal-overlay" id="liveModal">
+    <div class="live-modal-container">
+      <div class="live-modal-header">
+        <button class="live-modal-close" id="liveModalClose">✕</button>
+      </div>
+      <div class="live-modal-body">
+        <div class="live-modal-eyebrow">Live Info</div>
+        <div class="live-modal-date" id="liveModalDate"></div>
+        <div class="live-modal-title" id="liveModalTitle"></div>
+        <div class="live-modal-venue" id="liveModalVenue"></div>
+        <div class="live-modal-divider"></div>
+        <div class="live-modal-rows" id="liveModalRows"></div>
+        <a href="#" class="live-modal-ticket-btn" id="liveModalTicket">Ticket →</a>
+      </div>
+      <div class="live-modal-flyer" id="liveModalFlyerWrap">
+        <img id="liveModalFlyer" src="" alt="Flyer">
+      </div>
+    </div>
+  </div>
+
+  <!-- MEMBER MODAL -->
+  <div class="modal-overlay" id="memberModal">
+    <div class="modal-container">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div class="modal-photo">
+        <img id="modalPhoto" src="" alt="">
+      </div>
+      <div class="modal-body">
+        <div class="modal-part" id="modalPart"></div>
+        <div class="modal-name-ja" id="modalNameJa"></div>
+        <div class="modal-name-en" id="modalNameEn"></div>
+        <div class="modal-divider"></div>
+        <div class="modal-profile" id="modalProfile"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── SLIDESHOW ───
+    (function() {
+      const slides = document.querySelectorAll('.slide');
+      const dots   = document.querySelectorAll('.slideshow-dot');
+      let current  = 0;
+
+      function goTo(index) {
+        slides[current].classList.remove('active');
+        dots[current].classList.remove('active');
+        current = index % slides.length;
+        slides[current].classList.add('active');
+        dots[current].classList.add('active');
+      }
+
+      dots.forEach(dot => dot.addEventListener('click', () => goTo(Number(dot.dataset.index))));
+      setInterval(() => goTo(current + 1), 6000);
+    })();
+
+    // ─── NAV SCROLL ───
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    // ─── HERO IMAGE ZOOM ───
+    const heroImg = document.getElementById('heroImg');
+    heroImg.addEventListener('load', () => heroImg.classList.add('loaded'));
+    if (heroImg.complete) heroImg.classList.add('loaded');
+
+    // ─── MOBILE HERO SLIDESHOW ───
+    (function() {
+      const imgs = Array.from(document.querySelectorAll('.hero-slide-img'));
+      if (!imgs.length) return;
+
+      const order = imgs.map((_, i) => i);
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+
+      let current = 0;
+
+      function showSlide(idx) {
+        imgs.forEach(img => img.classList.remove('active'));
+        imgs[order[idx]].classList.add('active');
+      }
+
+      showSlide(current);
+      setInterval(() => {
+        current = (current + 1) % order.length;
+        showSlide(current);
+      }, 4000);
+    })();
+
+    // ─── HAMBURGER MENU ───
+    const hamburger = document.getElementById('hamburger');
+    const mobileNav = document.getElementById('mobileNav');
+
+    function closeMobileNav() {
+      mobileNav.classList.remove('open');
+      hamburger.classList.remove('open');
+      hamburger.setAttribute('aria-label', 'メニューを開く');
+      document.body.style.overflow = '';
+    }
+
+    hamburger.addEventListener('click', () => {
+      const isOpen = mobileNav.classList.toggle('open');
+      hamburger.classList.toggle('open', isOpen);
+      hamburger.setAttribute('aria-label', isOpen ? 'メニューを閉じる' : 'メニューを開く');
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    });
+
+    mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMobileNav));
+    mobileNav.addEventListener('click', e => { if (e.target === mobileNav) closeMobileNav(); });
+
+    // ─── MEMBER DATA ───
+    const memberData = {
+      gokimi: [
+        { label: '誕生日', value: '1/16' },
+        { label: '血液型', value: 'O型' },
+        { label: '出身',   value: '愛知県豊橋市' },
+        { label: '好き',   value: "ROCK'N'ROLL" },
+        { label: '嫌い',   value: '平等' },
+        { label: '尊敬',   value: '志高く主体性があり、想像力豊かなひと' },
+        { label: '一言',   value: '人生は素晴らしい！' },
+      ],
+      rinda: [
+        { label: '誕生日', value: '6/22' },
+        { label: '血液型', value: 'A' },
+        { label: '出身',   value: '東京' },
+        { label: '好き',   value: '一人で考え一人で行動すること' },
+        { label: '嫌い',   value: '自分の利益しか考えず人をコマのように扱う奴' },
+        { label: '尊敬',   value: '瓜田純士、ヒロ三河、井原良太郎' },
+        { label: '一言',   value: '自分の味方は自分だけ' },
+      ],
+    };
+
+    // ─── MEMBER MODAL ───
+    const memberModal = document.getElementById('memberModal');
+
+    function openMemberModal(card) {
+      const key = card.dataset.member;
+      document.getElementById('modalPhoto').src = card.querySelector('img').src;
+      document.getElementById('modalPhoto').alt = card.querySelector('img').alt;
+      document.getElementById('modalPart').textContent    = card.querySelector('.member-part').textContent;
+      document.getElementById('modalNameJa').textContent  = card.querySelector('.member-name-ja').textContent;
+      document.getElementById('modalNameEn').textContent  = card.querySelector('.member-name-en').textContent;
+
+      const profileEl = document.getElementById('modalProfile');
+      profileEl.innerHTML = '';
+      (memberData[key] || []).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'modal-profile-item';
+        div.innerHTML = `<span class="modal-profile-label">${item.label}</span><span class="modal-profile-value">${item.value}</span>`;
+        profileEl.appendChild(div);
+      });
+
+      memberModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMemberModal() {
+      memberModal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('.member-card').forEach(card => {
+      card.addEventListener('click', () => openMemberModal(card));
+    });
+    document.getElementById('modalClose').addEventListener('click', closeMemberModal);
+    memberModal.addEventListener('click', e => { if (e.target === memberModal) closeMemberModal(); });
+
+    // ─────────────────────────────────────────────────────────────────────
+    // LIVE DATA
+    //
+    // 現在はこのオブジェクトで管理。
+    // 将来 Google Sheets API と連携する際は、fetchLiveData() などの非同期関数で
+    // 同じ構造のデータを取得し renderLiveList() に渡すだけで対応可能。
+    // renderLiveList() 自体は変更不要。
+    //
+    // フィールド定義:
+    //   id     : 一意のキー文字列
+    //   date   : 表示用日付 (例: "6/7(日)")
+    //   year   : 年 — 複数年にわたる場合の区切り表示に使用
+    //   title  : 公演タイトル
+    //   venue  : 会場 (都市 / 施設名)
+    //   open   : 開場時刻
+    //   start  : 開演時刻
+    //   acts   : 共演バンド、またはワンマンの場合は "ワンマン"
+    //   flyer  : フライヤー画像パス (なければ空文字 "")
+    //   ticket : チケット購入URL
+    // ─────────────────────────────────────────────────────────────────────
+    const liveData = {
+      'live-1': {
+        date: '6/7(日)', year: '2026',
+        title: 'SHOCKWAVE Release Party',
+        venue: '東京 / 渋谷 CLUB QUATTRO',
+        open: '17:00', start: '18:00',
+        acts: 'BAND NAME A / BAND NAME B / BAND NAME C',
+        flyer: 'images/hero/kari.jpg', ticket: '#',
+      },
+      'live-2': {
+        date: '7/12(日)', year: '2026',
+        title: 'HEROES OR VILLAINS TOUR 2026 — 大阪公演',
+        venue: '大阪 / 梅田 CLUB QUATTRO',
+        open: '17:30', start: '18:30',
+        acts: 'BAND NAME A / BAND NAME B',
+        flyer: 'images/hero/kari.jpg', ticket: '#',
+      },
+      'live-3': {
+        date: '7/19(日)', year: '2026',
+        title: 'HEROES OR VILLAINS TOUR 2026 — 名古屋公演',
+        venue: '名古屋 / DIAMOND HALL',
+        open: '17:00', start: '18:00',
+        acts: 'BAND NAME A / BAND NAME C',
+        flyer: 'images/hero/kari.jpg', ticket: '#',
+      },
+      'live-4': {
+        date: '8/1(土)', year: '2026',
+        title: 'HEROES OR VILLAINS TOUR 2026 — 東京ワンマンFINAL',
+        venue: '東京 / Zepp Shinjuku',
+        open: '17:00', start: '18:00',
+        acts: 'ワンマン',
+        flyer: 'images/hero/kari.jpg', ticket: '#',
+      },
+    };
+
+    // ─── LIVE MODAL ───
+    const liveModal = document.getElementById('liveModal');
+
+    function openLiveModal(id) {
+      const data = liveData[id];
+      if (!data) return;
+
+      document.getElementById('liveModalDate').textContent  = data.date;
+      document.getElementById('liveModalTitle').textContent = data.title;
+      document.getElementById('liveModalVenue').textContent = data.venue;
+      document.getElementById('liveModalTicket').href       = data.ticket;
+
+      document.getElementById('liveModalRows').innerHTML = [
+        { label: 'Open',  value: data.open },
+        { label: 'Start', value: data.start },
+        { label: '共演',   value: data.acts },
+      ].map(r => `<div class="live-modal-row">
+        <span class="live-modal-row-label">${r.label}</span>
+        <span class="live-modal-row-value">${r.value}</span>
+      </div>`).join('');
+
+      const img = document.getElementById('liveModalFlyer');
+      img.src = data.flyer;
+      img.alt = data.title + ' フライヤー';
+      document.getElementById('liveModalFlyerWrap').style.display = data.flyer ? '' : 'none';
+
+      document.querySelector('.live-modal-container').scrollTop = 0;
+      liveModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLiveModal() {
+      liveModal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('liveModalClose').addEventListener('click', closeLiveModal);
+    liveModal.addEventListener('click', e => { if (e.target === liveModal) closeLiveModal(); });
+
+    // ─── LIVE LIST RENDER ───
+    // liveData から DOM を生成する関数。
+    // スプレッドシート連携後は fetchLiveData().then(renderLiveList) に置き換えるだけでよい。
+    function renderLiveList(data) {
+      const list = document.getElementById('liveList');
+      list.innerHTML = '';
+
+      const entries = Object.entries(data);
+      const years = [...new Set(entries.map(([, v]) => v.year))];
+      let currentYear = null;
+
+      entries.forEach(([id, live]) => {
+        if (years.length > 1 && live.year !== currentYear) {
+          currentYear = live.year;
+          const sep = document.createElement('div');
+          sep.className = 'live-year-separator';
+          sep.textContent = live.year;
+          list.appendChild(sep);
+        }
+
+        const dayPart = live.date.replace(/\(.\)$/, '');
+        const dowPart = live.date.match(/\(.\)$/)?.[0] ?? '';
+
+        const item = document.createElement('div');
+        item.className = 'live-item reveal';
+        item.dataset.liveId = id;
+        item.innerHTML = `
+          <div class="live-date-block">
+            <div class="live-day">${dayPart}</div>
+            <div class="live-date-dow">${dowPart}</div>
+          </div>
+          <div class="live-info">
+            <h3>${live.title}</h3>
+            <p>${live.venue} &nbsp;|&nbsp; OPEN ${live.open} / START ${live.start}</p>
+          </div>
+          <span class="live-btn">Ticket</span>
+        `;
+        item.addEventListener('click', () => openLiveModal(id));
+        list.appendChild(item);
+      });
+
+      // 新たに追加されたライブ要素をスクロールリビールに登録
+      list.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    }
+
+    // ─── SCROLL REVEAL ───
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 60);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ─── ESCAPE KEY ───
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      closeMemberModal();
+      closeLiveModal();
+      closeMobileNav();
+    });
+
+    // 初期レンダリング
+    renderLiveList(liveData);
+  </script>
+
+</body>
+</html>
