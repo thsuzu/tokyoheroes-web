@@ -208,6 +208,7 @@
       z-index: 2;
       padding: 0 60px 80px;
       width: 100%;
+      text-align: center;
     }
 
     .hero-eyebrow {
@@ -225,9 +226,10 @@
 
     .hero-title {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(5rem, 12vw, 10rem);
-      line-height: 0.9;
+      font-size: clamp(2.4rem, 8vw, 7rem);
+      line-height: 1;
       letter-spacing: 0.04em;
+      white-space: nowrap;
       color: var(--white);
       opacity: 0;
       transform: translateY(30px);
@@ -255,6 +257,7 @@
       gap: 16px;
       margin-top: 36px;
       flex-wrap: wrap;
+      justify-content: center;
       opacity: 0;
       transform: translateY(20px);
       animation: fadeUp 0.8s 0.9s forwards;
@@ -291,6 +294,27 @@
 
     .hero-btn-secondary:hover { border-color: var(--white); }
 
+    .hero-banners {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .hero-banners a {
+      display: block;
+      transition: opacity 0.2s;
+    }
+
+    .hero-banners a:hover { opacity: 0.85; }
+
+    .hero-banners img {
+      height: 180px;
+      width: auto;
+      display: block;
+    }
+
     .hero-scroll {
       position: absolute;
       bottom: 32px;
@@ -325,38 +349,6 @@
       50% { transform: scaleY(0.5); opacity: 0.4; }
     }
 
-    /* ─── MARQUEE TICKER ─── */
-    .marquee-band {
-      background: var(--red);
-      overflow: hidden;
-      padding: 11px 0;
-      white-space: nowrap;
-    }
-
-    .marquee-inner {
-      display: inline-flex;
-      animation: marqueeScroll 22s linear infinite;
-    }
-
-    .marquee-text {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1rem;
-      letter-spacing: 0.25em;
-      color: rgba(255,255,255,0.92);
-      padding-right: 52px;
-    }
-
-    .marquee-sep {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1rem;
-      color: rgba(255,255,255,0.35);
-      padding-right: 52px;
-    }
-
-    @keyframes marqueeScroll {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
-    }
 
     /* ─── SECTION BASE ─── */
     section { padding: 100px 60px; }
@@ -1285,11 +1277,12 @@
       #slideshow { padding: 28px 24px 0; }
       #videos { padding: 60px 24px; }
 
-      .hero-content { padding: 0 24px 60px; }
+      .hero-content { padding: 0 24px 20px; }
       .hero-scroll { display: none; }
 
-      .hero-cta { flex-direction: column; gap: 12px; }
-      .hero-btn { align-self: flex-start; }
+      .hero-cta { flex-direction: column; gap: 12px; align-items: center; }
+      .hero-btn { align-self: auto; }
+      .hero-banners img { height: 90px; }
 
       .video-grid { grid-template-columns: 1fr; }
 
@@ -1325,9 +1318,10 @@
       .footer-top { flex-direction: column; gap: 28px; margin-bottom: 40px; }
       .footer-bottom { flex-direction: column; gap: 14px; align-items: flex-start; }
 
-      .modal-container { flex-direction: column; width: 95%; max-height: 92vh; }
-      .modal-photo { width: 100%; height: 44vw; max-height: 220px; }
-      .modal-body { padding: 28px 24px; }
+      .modal-container { flex-direction: column; width: 95%; max-height: 92vh; overflow-y: auto; }
+      .modal-photo { width: 100%; height: auto; max-height: none; overflow: visible; }
+      .modal-photo img { height: auto; object-fit: contain; }
+      .modal-body { padding: 28px 24px; overflow-y: visible; }
 
       .live-modal-body { padding: 16px 24px 28px; }
       .live-modal-container { width: 95%; max-height: 92vh; }
@@ -1349,6 +1343,18 @@
       .hero-sub { letter-spacing: 0.1em; font-size: 0.82rem; }
 
       footer { padding: 40px 16px 28px; }
+    }
+
+    @media (max-width: 360px) {
+      .hero { overflow: visible; }
+      .hero-content { transform: translateY(8em); }
+      #slideshow { padding-top: 12em; }
+    }
+
+    @media (min-width: 361px) and (max-width: 375px) {
+      .hero { overflow: visible; }
+      .hero-content { transform: translateY(8em); }
+      #slideshow { padding-top: 12em; }
     }
   </style>
 </head>
@@ -1391,12 +1397,22 @@
     </div>
     <div class="hero-overlay"></div>
     <div class="hero-content">
-      <p class="hero-eyebrow">Tokyo — est. 2019</p>
-      <h1 class="hero-title">TOKYO<br><span>HEROES</span></h1>
-      <p class="hero-sub">Rock / Metal &nbsp;|&nbsp; From Tokyo, Japan</p>
+      <p class="hero-eyebrow">Tokyo — est. 2004</p>
+      <h1 class="hero-title">TOKYO <span>HEROES</span></h1>
+      <p class="hero-sub">From Tokyo, Japan</p>
       <div class="hero-cta">
-        <a href="#live" class="hero-btn hero-btn-primary">Live Info</a>
-        <a href="#videos" class="hero-btn hero-btn-secondary">Watch Now</a>
+        <a href="#news" class="hero-btn hero-btn-primary">NEWS</a>
+      </div>
+      <div class="hero-banners">
+        <a href="https://lin.ee/WvGCzsf" target="_blank" rel="noopener">
+          <img src="images/banner/line_b.png" alt="公式LINE">
+        </a>
+        <a href="https://www.youtube.com/channel/UCKWvH48IDSAbk0ShiAbG0GQ" target="_blank" rel="noopener">
+          <img src="images/banner/yt_b.png" alt="YouTube">
+        </a>
+        <a href="https://x.com/heroes_info" target="_blank" rel="noopener">
+          <img src="images/banner/X_b.png" alt="X">
+        </a>
       </div>
     </div>
     <div class="hero-scroll">
@@ -1405,35 +1421,6 @@
     </div>
   </section>
 
-  <!-- MARQUEE TICKER -->
-  <div class="marquee-band" aria-hidden="true">
-    <div class="marquee-inner">
-      <span class="marquee-text">TOKYO HEROES</span>
-      <span class="marquee-sep">—</span>
-      <span class="marquee-text">ROCK</span>
-      <span class="marquee-sep">—</span>
-      <span class="marquee-text">METAL</span>
-      <span class="marquee-sep">—</span>
-      <span class="marquee-text">FROM TOKYO</span>
-      <span class="marquee-sep">—</span>
-      <span class="marquee-text">EST. 2019</span>
-      <span class="marquee-sep">—</span>
-      <span class="marquee-text">DARK CITADEL</span>
-      <span class="marquee-sep">—</span>
-      <span class="marquee-text">TOKYO HEROES</span>
-      <span class="marquee-sep">—</span>
-      <span class="marquee-text">ROCK</span>
-      <span class="marquee-sep">—</span>
-      <span class="marquee-text">METAL</span>
-      <span class="marquee-sep">—</span>
-      <span class="marquee-text">FROM TOKYO</span>
-      <span class="marquee-sep">—</span>
-      <span class="marquee-text">EST. 2019</span>
-      <span class="marquee-sep">—</span>
-      <span class="marquee-text">DARK CITADEL</span>
-      <span class="marquee-sep">—</span>
-    </div>
-  </div>
 
   <!-- SLIDESHOW -->
   <section id="slideshow">
@@ -1472,16 +1459,6 @@
         <span class="news-date">2026.04.01</span>
         <span class="news-tag">Info</span>
         <span class="news-text">オフィシャルファンクラブ「HEROES GROUND」4月より始動</span>
-      </div>
-      <div class="news-item reveal">
-        <span class="news-date">2026.03.12</span>
-        <span class="news-tag">Media</span>
-        <span class="news-text">MUSIC VIDEO「LAST HERO」YouTube公開 ―― 公開24時間で10万再生突破</span>
-      </div>
-      <div class="news-item reveal">
-        <span class="news-date">2026.02.20</span>
-        <span class="news-tag">Release</span>
-        <span class="news-text">2nd Album「DARK CITADEL」全国流通盤リリース</span>
       </div>
     </div>
   </section>
