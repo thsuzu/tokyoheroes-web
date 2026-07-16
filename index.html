@@ -1357,9 +1357,11 @@
       #slideshow { padding-top: 12em; }
     }
 
-    /* iPhone 15 Pro (393px) のみ: テキストバナーを少し下げる */
+    /* iPhone 15 Pro (393px) のみ: テキストバナーを下げる */
     @media (min-width: 391px) and (max-width: 395px) {
-      .hero-content { padding-bottom: 0; }
+      .hero { overflow: visible; }
+      .hero-content { transform: translateY(40px); }
+      #slideshow { margin-top: 40px; }
     }
   </style>
 </head>
