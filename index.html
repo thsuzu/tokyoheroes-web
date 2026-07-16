@@ -1118,14 +1118,6 @@
       margin-bottom: 6px;
     }
 
-    .live-modal-venue {
-      font-size: 0.8rem;
-      font-weight: 300;
-      color: var(--grey);
-      letter-spacing: 0.05em;
-      margin-bottom: 24px;
-    }
-
     .live-modal-divider { width: 28px; height: 1px; background: var(--red); margin-bottom: 20px; }
 
     .live-modal-rows { display: flex; flex-direction: column; gap: 14px; }
@@ -1725,7 +1717,6 @@
         <div class="live-modal-eyebrow">Live Info</div>
         <div class="live-modal-date" id="liveModalDate"></div>
         <div class="live-modal-title" id="liveModalTitle"></div>
-        <div class="live-modal-venue" id="liveModalVenue"></div>
         <div class="live-modal-divider"></div>
         <div class="live-modal-rows" id="liveModalRows"></div>
       </div>
@@ -1940,10 +1931,10 @@
       const dow = ['日','月','火','水','木','金','土'][d.getDay()];
       document.getElementById('liveModalDate').textContent  = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日(${dow})`;
       document.getElementById('liveModalTitle').textContent = live.title;
-      document.getElementById('liveModalVenue').textContent = live.venue;
 
       const rowsEl = document.getElementById('liveModalRows');
       rowsEl.innerHTML = [
+        { label: '会場', value: live.venue },
         { label: '時間', value: live.time },
         { label: '料金', value: live.ticket },
         { label: '出演', value: live.lineup ? live.lineup.split('/').map(s => s.trim()).join(' / ') : '' },
