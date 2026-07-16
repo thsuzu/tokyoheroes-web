@@ -1180,6 +1180,31 @@
 
     .live-modal-flyer img { display: block; width: 100%; height: auto; }
 
+    .live-modal-detail {
+      font-size: 0.82rem;
+      font-weight: 300;
+      color: var(--grey);
+      letter-spacing: 0.04em;
+      line-height: 1.8;
+      padding-top: 16px;
+    }
+
+    .live-detail-link {
+      color: var(--red);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .live-detail-link:hover { text-decoration: underline; }
+
+    .live-empty {
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: var(--grey);
+      letter-spacing: 0.05em;
+      padding: 40px 0;
+    }
+
     /* ─── ITEM ─── */
     #item { background: var(--black); border-top: 1px solid #1f1f1f; }
 
@@ -1533,7 +1558,7 @@
       <div class="section-label">Schedule</div>
       <h2 class="section-title">Live</h2>
     </div>
-    <!-- ライブ一覧は JS の liveData から生成。スプレッドシート連携時はデータ取得部分だけ差し替え -->
+    <!-- ライブ一覧はスプレッドシート(CSV)から自動取得して表示 -->
     <div class="live-list" id="liveList"></div>
   </section>
 
@@ -1727,11 +1752,8 @@
         <div class="live-modal-venue" id="liveModalVenue"></div>
         <div class="live-modal-divider"></div>
         <div class="live-modal-rows" id="liveModalRows"></div>
-        <a href="#" class="live-modal-ticket-btn" id="liveModalTicket">Ticket →</a>
       </div>
-      <div class="live-modal-flyer" id="liveModalFlyerWrap">
-        <img id="liveModalFlyer" src="" alt="Flyer">
-      </div>
+      <div class="live-modal-flyer" id="liveModalFlyerWrap"></div>
     </div>
   </div>
 
@@ -1885,86 +1907,93 @@
     document.getElementById('modalClose').addEventListener('click', closeMemberModal);
     memberModal.addEventListener('click', e => { if (e.target === memberModal) closeMemberModal(); });
 
-    // ─────────────────────────────────────────────────────────────────────
-    // LIVE DATA
-    //
-    // 現在はこのオブジェクトで管理。
-    // 将来 Google Sheets API と連携する際は、fetchLiveData() などの非同期関数で
-    // 同じ構造のデータを取得し renderLiveList() に渡すだけで対応可能。
-    // renderLiveList() 自体は変更不要。
-    //
-    // フィールド定義:
-    //   id     : 一意のキー文字列
-    //   date   : 表示用日付 (例: "6/7(日)")
-    //   year   : 年 — 複数年にわたる場合の区切り表示に使用
-    //   title  : 公演タイトル
-    //   venue  : 会場 (都市 / 施設名)
-    //   open   : 開場時刻
-    //   start  : 開演時刻
-    //   acts   : 共演バンド、またはワンマンの場合は "ワンマン"
-    //   flyer  : フライヤー画像パス (なければ空文字 "")
-    //   ticket : チケット購入URL
-    // ─────────────────────────────────────────────────────────────────────
-    const liveData = {
-      'live-1': {
-        date: '6/7(日)', year: '2026',
-        title: 'SHOCKWAVE Release Party',
-        venue: '東京 / 渋谷 CLUB QUATTRO',
-        open: '17:00', start: '18:00',
-        acts: 'BAND NAME A / BAND NAME B / BAND NAME C',
-        flyer: 'images/hero/kari.jpg', ticket: '#',
-      },
-      'live-2': {
-        date: '7/12(日)', year: '2026',
-        title: 'HEROES OR VILLAINS TOUR 2026 — 大阪公演',
-        venue: '大阪 / 梅田 CLUB QUATTRO',
-        open: '17:30', start: '18:30',
-        acts: 'BAND NAME A / BAND NAME B',
-        flyer: 'images/hero/kari.jpg', ticket: '#',
-      },
-      'live-3': {
-        date: '7/19(日)', year: '2026',
-        title: 'HEROES OR VILLAINS TOUR 2026 — 名古屋公演',
-        venue: '名古屋 / DIAMOND HALL',
-        open: '17:00', start: '18:00',
-        acts: 'BAND NAME A / BAND NAME C',
-        flyer: 'images/hero/kari.jpg', ticket: '#',
-      },
-      'live-4': {
-        date: '8/1(土)', year: '2026',
-        title: 'HEROES OR VILLAINS TOUR 2026 — 東京ワンマンFINAL',
-        venue: '東京 / Zepp Shinjuku',
-        open: '17:00', start: '18:00',
-        acts: 'ワンマン',
-        flyer: 'images/hero/kari.jpg', ticket: '#',
-      },
-    };
+    // ─── CSV PARSER ───
+    function parseCSV(text) {
+      const rows = [];
+      let row = [], field = '', inQ = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQ) {
+          if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+          else if (c === '"') { inQ = false; }
+          else { field += c; }
+        } else {
+          if      (c === '"')  { inQ = true; }
+          else if (c === ',')  { row.push(field); field = ''; }
+          else if (c === '\r') { /* skip */ }
+          else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+          else                 { field += c; }
+        }
+      }
+      if (field || row.length) { row.push(field); rows.push(row); }
+      return rows;
+    }
+
+    // ─── DATE HELPERS ───
+    function parseDateObj(str) {
+      const s = str.trim().replace(/\//g, '-');
+      if (/^\d{8}$/.test(s)) return new Date(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`);
+      return new Date(s);
+    }
+
+    function todayStrJST() {
+      const n = new Date();
+      return new Date(n.getTime() + (9 * 60 - n.getTimezoneOffset()) * 60000)
+        .toISOString().slice(0, 10);
+    }
+
+    // ─── TICKET DETAIL FORMATTER ───
+    function formatTicketDetail(text) {
+      if (!text) return '';
+      return text.split(/(https?:\/\/\S+)/g).map((part, i) => {
+        if (i % 2 === 1) {
+          const safe = part.replace(/&/g, '&amp;');
+          return `<a href="${safe}" target="_blank" rel="noopener" class="live-detail-link">${safe}</a>`;
+        }
+        return part
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/\n/g, '<br>');
+      }).join('');
+    }
 
     // ─── LIVE MODAL ───
     const liveModal = document.getElementById('liveModal');
 
-    function openLiveModal(id) {
-      const data = liveData[id];
-      if (!data) return;
+    function openLiveModal(live) {
+      const d   = parseDateObj(live.date);
+      const dow = ['日','月','火','水','木','金','土'][d.getDay()];
+      document.getElementById('liveModalDate').textContent  = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日(${dow})`;
+      document.getElementById('liveModalTitle').textContent = live.title;
+      document.getElementById('liveModalVenue').textContent = live.venue;
 
-      document.getElementById('liveModalDate').textContent  = data.date;
-      document.getElementById('liveModalTitle').textContent = data.title;
-      document.getElementById('liveModalVenue').textContent = data.venue;
-      document.getElementById('liveModalTicket').href       = data.ticket;
+      const rowsEl = document.getElementById('liveModalRows');
+      rowsEl.innerHTML = [
+        { label: '時間', value: live.time },
+        { label: '料金', value: live.ticket },
+        { label: '出演', value: live.lineup },
+      ].filter(r => r.value).map(r => `
+        <div class="live-modal-row">
+          <span class="live-modal-row-label">${r.label}</span>
+          <span class="live-modal-row-value">${r.value}</span>
+        </div>`).join('');
 
-      document.getElementById('liveModalRows').innerHTML = [
-        { label: 'Open',  value: data.open },
-        { label: 'Start', value: data.start },
-        { label: '共演',   value: data.acts },
-      ].map(r => `<div class="live-modal-row">
-        <span class="live-modal-row-label">${r.label}</span>
-        <span class="live-modal-row-value">${r.value}</span>
-      </div>`).join('');
+      if (live.ticket_detail) {
+        const det = document.createElement('div');
+        det.className = 'live-modal-detail';
+        det.innerHTML = formatTicketDetail(live.ticket_detail);
+        rowsEl.appendChild(det);
+      }
 
-      const img = document.getElementById('liveModalFlyer');
-      img.src = data.flyer;
-      img.alt = data.title + ' フライヤー';
-      document.getElementById('liveModalFlyerWrap').style.display = data.flyer ? '' : 'none';
+      const flyerWrap = document.getElementById('liveModalFlyerWrap');
+      flyerWrap.innerHTML = '';
+      [live.images_poster, live.images_lineup].forEach(fn => {
+        if (!fn) return;
+        const img = document.createElement('img');
+        img.src = `images/live/${fn}`;
+        img.alt = live.title;
+        flyerWrap.appendChild(img);
+      });
+      flyerWrap.style.display = flyerWrap.children.length ? '' : 'none';
 
       document.querySelector('.live-modal-container').scrollTop = 0;
       liveModal.classList.add('active');
@@ -1980,48 +2009,74 @@
     liveModal.addEventListener('click', e => { if (e.target === liveModal) closeLiveModal(); });
 
     // ─── LIVE LIST RENDER ───
-    // liveData から DOM を生成する関数。
-    // スプレッドシート連携後は fetchLiveData().then(renderLiveList) に置き換えるだけでよい。
-    function renderLiveList(data) {
+    function renderLiveList(items) {
       const list = document.getElementById('liveList');
       list.innerHTML = '';
 
-      const entries = Object.entries(data);
-      const years = [...new Set(entries.map(([, v]) => v.year))];
-      let currentYear = null;
+      if (!items.length) {
+        const msg = document.createElement('p');
+        msg.className = 'live-empty';
+        msg.textContent = '現在予定されているライブはありません';
+        list.appendChild(msg);
+        return;
+      }
 
-      entries.forEach(([id, live]) => {
-        if (years.length > 1 && live.year !== currentYear) {
-          currentYear = live.year;
-          const sep = document.createElement('div');
-          sep.className = 'live-year-separator';
-          sep.textContent = live.year;
-          list.appendChild(sep);
-        }
-
-        const dayPart = live.date.replace(/\(.\)$/, '');
-        const dowPart = live.date.match(/\(.\)$/)?.[0] ?? '';
-
-        const item = document.createElement('div');
+      items.forEach(live => {
+        const d      = parseDateObj(live.date);
+        const dow    = ['日','月','火','水','木','金','土'][d.getDay()];
+        const item   = document.createElement('div');
         item.className = 'live-item reveal';
-        item.dataset.liveId = id;
         item.innerHTML = `
           <div class="live-date-block">
-            <div class="live-day">${dayPart}</div>
-            <div class="live-date-dow">${dowPart}</div>
+            <div class="live-day">${d.getMonth()+1}/${d.getDate()}</div>
+            <div class="live-date-dow">(${dow})</div>
           </div>
           <div class="live-info">
             <h3>${live.title}</h3>
-            <p>${live.venue} &nbsp;|&nbsp; OPEN ${live.open} / START ${live.start}</p>
+            <p>${live.venue} &nbsp;|&nbsp; ${live.time}</p>
           </div>
-          <span class="live-btn">Ticket</span>
+          <span class="live-btn">Detail</span>
         `;
-        item.addEventListener('click', () => openLiveModal(id));
+        item.addEventListener('click', () => openLiveModal(live));
         list.appendChild(item);
       });
 
-      // 新たに追加されたライブ要素をスクロールリビールに登録
       list.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    }
+
+    // ─── LIVE CSV FETCH ───
+    async function fetchAndRenderLive() {
+      const URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxrKLhzW0ALm9nJA_znqnVwBegiAdOwWMOv8GuCR0ySqe4eOvfwX6hUJld3a-X7wu6asdarHHMbi3v/pub?gid=0&single=true&output=csv';
+      try {
+        const res  = await fetch(URL);
+        if (!res.ok) throw new Error(res.status);
+        const rows = parseCSV(await res.text());
+        if (rows.length < 2) { renderLiveList([]); return; }
+
+        const headers = rows[0].map(h => h.trim());
+        const today   = todayStrJST();
+        const now     = new Date();
+
+        const items = rows.slice(1)
+          .map(row => {
+            const o = {};
+            headers.forEach((h, i) => { o[h] = (row[i] || '').trim(); });
+            return o;
+          })
+          .filter(live => {
+            if (live.status !== 'show') return false;
+            if (live.date.replace(/\//g, '-') < today) return false;
+            if (!live.public_date) return true;
+            const pub = new Date(live.public_date.trim().replace(/\//g, '-').replace(' ', 'T') + ':00+09:00');
+            return pub <= now;
+          })
+          .sort((a, b) => a.date.localeCompare(b.date));
+
+        renderLiveList(items);
+      } catch (e) {
+        console.error('ライブデータ取得エラー:', e);
+        renderLiveList([]);
+      }
     }
 
     // ─── SCROLL REVEAL ───
@@ -2044,8 +2099,8 @@
       closeMobileNav();
     });
 
-    // 初期レンダリング
-    renderLiveList(liveData);
+    // 初期レンダリング（CSVから取得）
+    fetchAndRenderLive();
 
     // ─── INFORMATION EMAIL ───
     (function() {
