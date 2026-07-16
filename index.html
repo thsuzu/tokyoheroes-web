@@ -1363,6 +1363,19 @@
       .hero-content { transform: translateY(100px); }
       #slideshow { margin-top: 100px; }
     }
+
+    /* Nest Hub (1024×600): モバイルレイアウト適用済みの横置き短画面 */
+    @media (min-width: 950px) and (max-width: 1024px) and (max-height: 700px) {
+      .hero { overflow: visible; }
+      .hero-content { transform: translateY(100px); }
+      #slideshow { margin-top: 100px; }
+    }
+
+    /* Nest Hub Max など 1025px〜1280px の中間 PC サイズ */
+    @media (min-width: 1025px) and (max-width: 1280px) {
+      .hero-content { padding-bottom: 20px; }
+      .hero-banners img { height: 90px; }
+    }
   </style>
 </head>
 <body>
