@@ -2046,9 +2046,10 @@
 
     // ─── LIVE CSV FETCH ───
     async function fetchAndRenderLive() {
-      const URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxrKLhzW0ALm9nJA_znqnVwBegiAdOwWMOv8GuCR0ySqe4eOvfwX6hUJld3a-X7wu6asdarHHMbi3v/pub?gid=0&single=true&output=csv';
+      const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxrKLhzW0ALm9nJA_znqnVwBegiAdOwWMOv8GuCR0ySqe4eOvfwX6hUJld3a-X7wu6asdarHHMbi3v/pub?gid=0&single=true&output=csv';
+      const PROXY   = 'https://api.allorigins.win/raw?url=';
       try {
-        const res  = await fetch(URL);
+        const res  = await fetch(PROXY + encodeURIComponent(CSV_URL));
         if (!res.ok) throw new Error(res.status);
         const rows = parseCSV(await res.text());
         if (rows.length < 2) { renderLiveList([]); return; }
@@ -2057,12 +2058,37 @@
         const today   = todayStrJST();
         const now     = new Date();
 
-        const items = rows.slice(1)
-          .map(row => {
-            const o = {};
-            headers.forEach((h, i) => { o[h] = (row[i] || '').trim(); });
-            return o;
-          })
+        const allItems = rows.slice(1).map(row => {
+          const o = {};
+          headers.forEach((h, i) => { o[h] = (row[i] || '').trim(); });
+          return o;
+        });
+
+        // ── DEBUG START ──────────────────────────────────
+        const list = document.getElementById('liveList');
+        list.innerHTML = '';
+        const pre = document.createElement('pre');
+        pre.style.cssText = 'color:#0f0;background:#111;padding:16px;font-size:11px;line-height:1.6;overflow-x:auto;white-space:pre-wrap;border:1px solid #333';
+        let dbg = `【デバッグ表示】today(JST)="${today}"  now="${now.toISOString()}"\n\n`;
+        allItems.forEach((live, i) => {
+          const dateNorm = live.date.replace(/\//g, '-');
+          let reason = '✅ 通過';
+          if (live.status !== 'show') {
+            reason = `❌ status="${live.status}" (show以外)`;
+          } else if (dateNorm < today) {
+            reason = `❌ date="${live.date}" → "${dateNorm}" < today="${today}"`;
+          } else if (live.public_date) {
+            const pubStr = live.public_date.trim().replace(/\//g, '-').replace(' ', 'T') + ':00+09:00';
+            const pub = new Date(pubStr);
+            if (pub > now) reason = `❌ public_date="${live.public_date}" → "${pubStr}" まだ未来 (pub=${pub.toISOString()})`;
+          }
+          dbg += `行${i+1}: date="${live.date}"  public_date="${live.public_date}"  status="${live.status}"\n      → ${reason}\n\n`;
+        });
+        pre.textContent = dbg;
+        list.appendChild(pre);
+        // ── DEBUG END ────────────────────────────────────
+
+        const items = allItems
           .filter(live => {
             if (live.status !== 'show') return false;
             if (live.date.replace(/\//g, '-') < today) return false;
@@ -2072,10 +2098,11 @@
           })
           .sort((a, b) => a.date.localeCompare(b.date));
 
-        renderLiveList(items);
+        // renderLiveList(items);  // デバッグ中は通常表示を一時停止
       } catch (e) {
         console.error('ライブデータ取得エラー:', e);
-        renderLiveList([]);
+        document.getElementById('liveList').innerHTML =
+          `<pre style="color:red;font-size:11px">fetch エラー: ${e}</pre>`;
       }
     }
 
