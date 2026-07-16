@@ -484,12 +484,11 @@
 
     .news-item {
       display: grid;
-      grid-template-columns: 120px 80px 1fr;
+      grid-template-columns: 120px 1fr;
       align-items: center;
       gap: 24px;
       padding: 24px 0;
       border-bottom: 1px solid #1c1c1c;
-      cursor: pointer;
       transition: background 0.2s;
     }
 
@@ -503,17 +502,6 @@
       color: var(--grey);
     }
 
-    .news-tag {
-      font-family: 'Oswald', sans-serif;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      color: var(--red);
-      border: 1px solid var(--red-dark);
-      padding: 2px 8px;
-      text-transform: uppercase;
-      text-align: center;
-    }
-
     .news-text {
       font-size: 0.88rem;
       font-weight: 300;
@@ -523,6 +511,13 @@
     }
 
     .news-item:hover .news-text { color: #fff; }
+
+    a.news-text {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    a.news-text:hover { text-decoration: underline; }
 
     /* ─── LIVE ─── */
     #live { background: var(--dark-grey); }
@@ -1359,14 +1354,11 @@
       .video-grid { grid-template-columns: 1fr; }
 
       .news-item {
-        grid-template-columns: 1fr auto;
-        grid-template-rows: auto auto;
+        grid-template-columns: auto 1fr;
         gap: 8px 16px;
         padding: 20px 0;
       }
-      .news-date { grid-column: 1; grid-row: 1; }
-      .news-tag  { grid-column: 2; grid-row: 1; }
-      .news-text { grid-column: 1 / -1; grid-row: 2; font-size: 0.82rem; }
+      .news-text { font-size: 0.82rem; }
 
       .live-item {
         grid-template-columns: 80px 1fr;
@@ -1517,23 +1509,7 @@
       <div class="section-label">Latest</div>
       <h2 class="section-title">News</h2>
     </div>
-    <div class="news-list">
-      <div class="news-item reveal">
-        <span class="news-date">2026.05.15</span>
-        <span class="news-tag">Release</span>
-        <span class="news-text">New Single「SHOCKWAVE」リリース決定！6月25日発売</span>
-      </div>
-      <div class="news-item reveal">
-        <span class="news-date">2026.04.28</span>
-        <span class="news-tag">Live</span>
-        <span class="news-text">7月ワンマンツアー「HEROES OR VILLAINS TOUR 2026」全公演チケット発売開始</span>
-      </div>
-      <div class="news-item reveal">
-        <span class="news-date">2026.04.01</span>
-        <span class="news-tag">Info</span>
-        <span class="news-text">オフィシャルファンクラブ「HEROES GROUND」4月より始動</span>
-      </div>
-    </div>
+    <div class="news-list" id="newsList"></div>
   </section>
 
   <!-- SLIDESHOW -->
@@ -2044,10 +2020,83 @@
       list.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     }
 
+    // ─── NEWS CSV FETCH ───
+    function renderNewsList(items) {
+      const list = document.getElementById('newsList');
+      list.innerHTML = '';
+
+      if (!items.length) {
+        const msg = document.createElement('p');
+        msg.className = 'live-empty';
+        msg.textContent = 'お知らせはありません';
+        list.appendChild(msg);
+        return;
+      }
+
+      items.forEach(n => {
+        const dateStr = n.date.replace(/-/g, '.').replace(/\//g, '.');
+        const item = document.createElement('div');
+        item.className = 'news-item reveal';
+
+        const dateEl = document.createElement('span');
+        dateEl.className = 'news-date';
+        dateEl.textContent = dateStr;
+
+        let textEl;
+        if (n.link_url) {
+          textEl = document.createElement('a');
+          textEl.href = n.link_url;
+          textEl.target = '_blank';
+          textEl.rel = 'noopener';
+        } else {
+          textEl = document.createElement('span');
+        }
+        textEl.className = 'news-text';
+        textEl.textContent = n.text;
+
+        item.appendChild(dateEl);
+        item.appendChild(textEl);
+        list.appendChild(item);
+      });
+
+      list.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    }
+
+    async function fetchAndRenderNews() {
+      const WORKER_URL = 'https://tokyoheroes-live.heroes777rock.workers.dev/?type=news';
+      try {
+        const res = await fetch(WORKER_URL);
+        if (!res.ok) throw new Error(res.status);
+        const rows = parseCSV(await res.text());
+        if (rows.length < 2) { renderNewsList([]); return; }
+
+        const headers = rows[0].map(h => h.trim());
+        const now = new Date();
+
+        const items = rows.slice(1)
+          .map(row => {
+            const o = {};
+            headers.forEach((h, i) => { o[h] = (row[i] || '').trim(); });
+            return o;
+          })
+          .filter(n => {
+            if (n.status !== 'show') return false;
+            if (!n.public_date) return true;
+            const pub = new Date(n.public_date.trim().replace(/\//g, '-').replace(' ', 'T') + ':00+09:00');
+            return pub <= now;
+          })
+          .sort((a, b) => b.date.localeCompare(a.date));
+
+        renderNewsList(items);
+      } catch (e) {
+        console.error('ニュースデータ取得エラー:', e);
+        renderNewsList([]);
+      }
+    }
+
     // ─── LIVE CSV FETCH ───
     async function fetchAndRenderLive() {
-      // ★ Cloudflare Worker をデプロイ後、下の URL を書き換えてください
-      const WORKER_URL = 'https://tokyoheroes-live.heroes777rock.workers.dev/';
+      const WORKER_URL = 'https://tokyoheroes-live.heroes777rock.workers.dev/?type=live';
       try {
         const res  = await fetch(WORKER_URL);
         if (!res.ok) throw new Error(res.status);
@@ -2101,6 +2150,7 @@
     });
 
     // 初期レンダリング（CSVから取得）
+    fetchAndRenderNews();
     fetchAndRenderLive();
 
     // ─── INFORMATION EMAIL ───
