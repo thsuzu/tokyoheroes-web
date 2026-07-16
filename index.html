@@ -1970,7 +1970,7 @@
       rowsEl.innerHTML = [
         { label: '時間', value: live.time },
         { label: '料金', value: live.ticket },
-        { label: '出演', value: live.lineup },
+        { label: '出演', value: live.lineup ? live.lineup.split('/').map(s => s.trim()).join(' / ') : '' },
       ].filter(r => r.value).map(r => `
         <div class="live-modal-row">
           <span class="live-modal-row-label">${r.label}</span>
