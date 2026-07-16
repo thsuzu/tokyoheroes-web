@@ -2073,12 +2073,35 @@
         const headers = rows[0].map(h => h.trim());
         const now = new Date();
 
-        const items = rows.slice(1)
-          .map(row => {
-            const o = {};
-            headers.forEach((h, i) => { o[h] = (row[i] || '').trim(); });
-            return o;
-          })
+        const allItems = rows.slice(1).map(row => {
+          const o = {};
+          headers.forEach((h, i) => { o[h] = (row[i] || '').trim(); });
+          return o;
+        });
+
+        // ── DEBUG START ──────────────────────────────────
+        const list = document.getElementById('newsList');
+        list.innerHTML = '';
+        const pre = document.createElement('pre');
+        pre.style.cssText = 'color:#0f0;background:#111;padding:16px;font-size:11px;line-height:1.6;overflow-x:auto;white-space:pre-wrap;border:1px solid #333';
+        let dbg = `【NEWSデバッグ】headers=${JSON.stringify(headers)}\nnow="${now.toISOString()}"\n\n`;
+        allItems.forEach((n, i) => {
+          let reason = '✅ 通過';
+          if (n.status !== 'show') {
+            reason = `❌ status="${n.status}" (show以外)`;
+          } else if (n.public_date) {
+            const pubStr = n.public_date.trim().replace(/\//g, '-').replace(' ', 'T') + ':00+09:00';
+            const pub = new Date(pubStr);
+            if (isNaN(pub)) reason = `❌ public_date="${n.public_date}" → "${pubStr}" パース失敗(NaN)`;
+            else if (pub > now) reason = `❌ public_date="${n.public_date}" → "${pubStr}" まだ未来`;
+          }
+          dbg += `行${i+1}: date="${n.date}"  status="${n.status}"  public_date="${n.public_date}"\n      → ${reason}\n\n`;
+        });
+        pre.textContent = dbg;
+        list.appendChild(pre);
+        // ── DEBUG END ────────────────────────────────────
+
+        const items = allItems
           .filter(n => {
             if (n.status !== 'show') return false;
             if (!n.public_date) return true;
@@ -2087,7 +2110,7 @@
           })
           .sort((a, b) => b.date.localeCompare(a.date));
 
-        renderNewsList(items);
+        // renderNewsList(items);  // デバッグ中は一時停止
       } catch (e) {
         console.error('ニュースデータ取得エラー:', e);
         renderNewsList([]);
