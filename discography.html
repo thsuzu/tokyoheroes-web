@@ -794,7 +794,8 @@
       const dateStr = (item.release_date || '').replace(/-/g, '.').slice(0, 10);
       modalImg.src     = `images/discography/${item.jacket_image}`;
       modalImg.alt     = item.title;
-      modalType.textContent  = TYPE_LABELS_EN[item.type] || item.type;
+      const normalType       = (item.type || '').toLowerCase().trim();
+      modalType.textContent  = TYPE_LABELS_EN[normalType] || item.type;
       modalTitle.textContent = item.title;
       modalDate.textContent  = dateStr;
       modalDesc.innerHTML    = formatDescription(item.description || '');
@@ -843,12 +844,13 @@
       }
 
       items.forEach(item => {
-        const dateStr = (item.release_date || '').replace(/-/g, '.').slice(0, 10);
-        const label   = TYPE_LABELS[item.type] || item.type;
+        const dateStr    = (item.release_date || '').replace(/-/g, '.').slice(0, 10);
+        const normalType = (item.type || '').toLowerCase().trim();
+        const label      = TYPE_LABELS[normalType] || item.type;
 
         const card = document.createElement('div');
-        card.className  = 'dpage-card';
-        card.dataset.type = item.type;
+        card.className    = 'dpage-card';
+        card.dataset.type = normalType;
         card.innerHTML = `
           <div class="dpage-img-wrap">
             <img src="images/discography/${esc(item.jacket_image)}" alt="${esc(item.title)}" loading="lazy">
