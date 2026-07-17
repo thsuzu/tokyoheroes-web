@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discography — TOKYO HEROES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;700&family=Oswald:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --red: #c0001e;
+      --red-dark: #8a0015;
+      --white: #f0f0f0;
+      --grey: #888;
+      --dark-grey: #1a1a1a;
+      --black: #0a0a0a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Noto Sans JP', sans-serif;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--red); }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      z-index: 100;
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(192,0,30,0.3);
+    }
+
+    .nav-logo {
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-logo-img {
+      width: 168px;
+      height: 48px;
+      object-fit: contain;
+      object-position: left center;
+      display: block;
+      transition: filter 0.25s;
+    }
+
+    .nav-logo:hover .nav-logo-img { filter: brightness(0) invert(1); }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 300;
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      color: var(--grey);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.25s;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0;
+      width: 0; height: 1px;
+      background: var(--red);
+      transition: width 0.3s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.current { color: var(--white); }
+    .nav-links a:hover::after,
+    .nav-links a.current::after { width: 100%; }
+
+    /* ─── HAMBURGER ─── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 36px;
+      height: 36px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      z-index: 201;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 100%;
+      height: 1px;
+      background: var(--white);
+      transition: transform 0.3s, opacity 0.3s;
+    }
+
+    .hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+    /* ─── MOBILE NAV ─── */
+    .mobile-nav {
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,10,0.97);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s;
+    }
+
+    .mobile-nav.open { opacity: 1; pointer-events: all; }
+
+    .mobile-nav a {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.6rem;
+      letter-spacing: 0.12em;
+      color: var(--white);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .mobile-nav a:hover,
+    .mobile-nav a.current { color: var(--red); }
+
+    /* ─── PAGE HEADER ─── */
+    .dpage-header {
+      padding: 120px 60px 56px;
+      background: var(--black);
+      border-bottom: 1px solid #1f1f1f;
+    }
+
+    .dpage-header-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.5em;
+      color: var(--red);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .dpage-header-label::before {
+      content: '';
+      display: inline-block;
+      width: 30px;
+      height: 1px;
+      background: var(--red);
+    }
+
+    .dpage-header-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      letter-spacing: 0.06em;
+      line-height: 1;
+      color: var(--white);
+    }
+
+    /* ─── STREAMING BUTTON ─── */
+    .dpage-streaming-wrap {
+      background: var(--dark-grey);
+      padding: 32px 60px;
+      text-align: center;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .dpage-streaming-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 400;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 14px 40px;
+      color: var(--white);
+      background: var(--red);
+      border: 1px solid var(--red);
+      transition: all 0.25s;
+    }
+
+    .dpage-streaming-btn:hover {
+      background: var(--red-dark);
+      border-color: var(--red-dark);
+    }
+
+    .dpage-streaming-btn-icon {
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    /* ─── FILTER TABS ─── */
+    .dpage-filter-wrap {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 36px 60px 0;
+      background: var(--dark-grey);
+    }
+
+    .dpage-filter-btn {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      padding: 9px 24px;
+      background: none;
+      color: var(--grey);
+      border: 1px solid #2a2a2a;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .dpage-filter-btn:hover { color: var(--white); border-color: #555; }
+
+    .dpage-filter-btn.active {
+      color: var(--white);
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    /* ─── GRID ─── */
+    .dpage-main {
+      background: var(--dark-grey);
+      padding: 40px 60px 100px;
+    }
+
+    .dpage-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .dpage-card {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dpage-img-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      overflow: hidden;
+      transition: border-color 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dpage-card:hover .dpage-img-wrap { border-color: var(--red-dark); }
+
+    .dpage-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .dpage-card:hover .dpage-img-wrap img { transform: scale(1.05); }
+
+    .dpage-card-badge {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.55rem;
+      letter-spacing: 0.15em;
+      color: var(--white);
+      background: rgba(192,0,30,0.85);
+      padding: 3px 6px;
+      text-transform: uppercase;
+      text-align: center;
+      backdrop-filter: blur(2px);
+    }
+
+    .dpage-card-info {
+      padding: 8px 2px 0;
+    }
+
+    .dpage-card-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--white);
+      line-height: 1.3;
+      transition: color 0.2s;
+    }
+
+    .dpage-card:hover .dpage-card-title { color: #fff; }
+
+    .dpage-card-date {
+      font-size: 0.68rem;
+      font-weight: 300;
+      color: var(--grey);
+      margin-top: 2px;
+      letter-spacing: 0.04em;
+    }
+
+    .dpage-empty {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      color: var(--grey);
+      text-transform: uppercase;
+      text-align: center;
+      padding: 60px 0;
+      grid-column: 1 / -1;
+    }
+
+    /* ─── MODAL ─── */
+    .dpage-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s;
+      backdrop-filter: blur(6px);
+    }
+
+    .dpage-modal.active { opacity: 1; pointer-events: all; }
+
+    .dpage-modal-box {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-top: 2px solid var(--red);
+      position: relative;
+      max-width: 680px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(24px) scale(0.98);
+      transition: transform 0.35s ease;
+    }
+
+    .dpage-modal.active .dpage-modal-box { transform: translateY(0) scale(1); }
+
+    .dpage-modal-close {
+      position: sticky;
+      top: 0;
+      float: right;
+      margin: 14px 14px 0 0;
+      width: 34px;
+      height: 34px;
+      border: 1px solid #333;
+      background: #111;
+      color: var(--grey);
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      z-index: 2;
+      flex-shrink: 0;
+    }
+
+    .dpage-modal-close:hover { border-color: var(--red); color: var(--red); }
+
+    .dpage-modal-inner {
+      display: flex;
+      padding: 24px 36px 36px;
+      gap: 28px;
+      clear: both;
+    }
+
+    .dpage-modal-img-col { flex-shrink: 0; }
+
+    .dpage-modal-img-col img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+      border: 1px solid #2a2a2a;
+    }
+
+    .dpage-modal-body { flex: 1; min-width: 0; }
+
+    .dpage-modal-type {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 300;
+      letter-spacing: 0.5em;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .dpage-modal-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .dpage-modal-date {
+      font-size: 0.8rem;
+      font-weight: 300;
+      color: var(--grey);
+      letter-spacing: 0.08em;
+      margin-bottom: 20px;
+    }
+
+    .dpage-modal-divider {
+      width: 28px;
+      height: 1px;
+      background: var(--red);
+      margin-bottom: 20px;
+    }
+
+    .dpage-modal-desc {
+      font-size: 0.84rem;
+      font-weight: 300;
+      color: var(--white);
+      letter-spacing: 0.04em;
+      line-height: 1.8;
+    }
+
+    .dpage-desc-link {
+      color: var(--red);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .dpage-desc-link:hover { text-decoration: underline; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: #050505;
+      border-top: 1px solid #1a1a1a;
+      padding: 60px 60px 40px;
+    }
+
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 60px;
+    }
+
+    .footer-logo-img {
+      width: 200px;
+      height: 58px;
+      object-fit: contain;
+      object-position: left center;
+      display: block;
+    }
+
+    .footer-tagline {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      color: var(--grey);
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    .footer-social { display: flex; gap: 20px; }
+
+    .social-link {
+      width: 40px;
+      height: 40px;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--grey);
+      text-decoration: none;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.05em;
+      transition: all 0.25s;
+    }
+
+    .social-link:hover { border-color: var(--red); color: var(--red); }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #1a1a1a;
+      padding-top: 30px;
+    }
+
+    .footer-copy {
+      font-size: 0.72rem;
+      font-weight: 300;
+      color: #444;
+      letter-spacing: 0.1em;
+    }
+
+    .footer-nav { display: flex; gap: 28px; list-style: none; }
+
+    .footer-nav a {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      color: #444;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .footer-nav a:hover { color: var(--white); }
+
+    /* ─── NOISE ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.5;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1024px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+
+      .dpage-header { padding: 100px 24px 44px; }
+      .dpage-streaming-wrap { padding: 24px; }
+      .dpage-filter-wrap { padding: 28px 24px 0; }
+      .dpage-main { padding: 32px 24px 80px; }
+
+      .dpage-grid { grid-template-columns: repeat(4, 1fr); }
+
+      footer { padding: 48px 24px 32px; }
+      .footer-top { flex-direction: column; gap: 28px; margin-bottom: 40px; }
+      .footer-bottom { flex-direction: column; gap: 14px; align-items: flex-start; }
+    }
+
+    @media (max-width: 768px) {
+      .dpage-grid { grid-template-columns: repeat(3, 1fr); }
+
+      .dpage-modal-inner { flex-direction: column; align-items: center; padding: 20px 20px 28px; }
+      .dpage-modal-img-col img { width: 160px; height: 160px; }
+      .dpage-modal-body { width: 100%; }
+    }
+
+    @media (max-width: 480px) {
+      .dpage-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .dpage-filter-wrap { gap: 6px; padding: 24px 16px 0; }
+      .dpage-filter-btn { padding: 8px 16px; font-size: 0.68rem; }
+    }
+
+    @media (max-width: 390px) {
+      nav { padding: 0 16px; }
+      .dpage-header { padding: 96px 16px 40px; }
+      .dpage-main { padding: 28px 16px 60px; }
+      footer { padding: 40px 16px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MOBILE NAV OVERLAY -->
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html#news">News</a>
+    <a href="index.html#live">Live</a>
+    <a href="index.html#members">Members</a>
+    <a href="discography.html" class="current">Discography</a>
+    <a href="index.html#item">Item</a>
+    <a href="index.html#information">Information</a>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">
+      <img class="nav-logo-img" src="images/logo/tokyoheroes_logo02_red.png?v=2" alt="TOKYO HEROES">
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html#news">News</a></li>
+      <li><a href="index.html#live">Live</a></li>
+      <li><a href="index.html#members">Members</a></li>
+      <li><a href="discography.html" class="current">Discography</a></li>
+      <li><a href="index.html#item">Item</a></li>
+      <li><a href="index.html#information">Information</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="メニューを開く">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- PAGE HEADER -->
+  <div class="dpage-header">
+    <div class="dpage-header-label">Works</div>
+    <h1 class="dpage-header-title">Discography</h1>
+  </div>
+
+  <!-- STREAMING LINK -->
+  <div class="dpage-streaming-wrap">
+    <a href="https://lit.link/f23c8dd9-257c-4ca4-9759-cabbb9dfe130"
+       target="_blank" rel="noopener"
+       class="dpage-streaming-btn">
+      <span class="dpage-streaming-btn-icon">&#9835;</span>
+      配信サイトはこちら
+    </a>
+  </div>
+
+  <!-- FILTER TABS -->
+  <div class="dpage-filter-wrap" id="dpageFilterWrap">
+    <button class="dpage-filter-btn active" data-filter="all">ALL</button>
+    <button class="dpage-filter-btn" data-filter="album">アルバム</button>
+    <button class="dpage-filter-btn" data-filter="single">シングル</button>
+    <button class="dpage-filter-btn" data-filter="dvd">DVD</button>
+  </div>
+
+  <!-- GRID -->
+  <div class="dpage-main">
+    <div class="dpage-grid" id="dpageGrid">
+      <p class="dpage-empty" id="dpageLoading">Loading...</p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-top">
+      <div>
+        <img class="footer-logo-img" src="images/logo/tokyoheroes_logo02_red.png?v=2" alt="TOKYO HEROES">
+        <div class="footer-tagline">Official Website</div>
+      </div>
+      <div class="footer-social">
+        <a href="#" class="social-link">TW</a>
+        <a href="#" class="social-link">IG</a>
+        <a href="#" class="social-link">YT</a>
+        <a href="#" class="social-link">TK</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">&copy; 2026 TOKYO HEROES. All Rights Reserved.</p>
+      <ul class="footer-nav">
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="index.html#information">Contact</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <!-- MODAL -->
+  <div class="dpage-modal" id="dpageModal">
+    <div class="dpage-modal-box">
+      <button class="dpage-modal-close" id="dpageModalClose">&#x2715;</button>
+      <div class="dpage-modal-inner">
+        <div class="dpage-modal-img-col">
+          <img id="dpageModalImg" src="" alt="">
+        </div>
+        <div class="dpage-modal-body">
+          <div class="dpage-modal-type" id="dpageModalType"></div>
+          <div class="dpage-modal-title" id="dpageModalTitle"></div>
+          <div class="dpage-modal-date" id="dpageModalDate"></div>
+          <div class="dpage-modal-divider"></div>
+          <div class="dpage-modal-desc" id="dpageModalDesc"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── CSV PARSER ───
+    function parseCSV(text) {
+      const rows = [];
+      let row = [], field = '', inQ = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQ) {
+          if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+          else if (c === '"') { inQ = false; }
+          else { field += c; }
+        } else {
+          if      (c === '"')  { inQ = true; }
+          else if (c === ',')  { row.push(field); field = ''; }
+          else if (c === '\r') { /* skip */ }
+          else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+          else                 { field += c; }
+        }
+      }
+      if (field || row.length) { row.push(field); rows.push(row); }
+      return rows;
+    }
+
+    // ─── HELPERS ───
+    function esc(s) {
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    const TYPE_LABELS = { album: 'アルバム', single: 'シングル', dvd: 'DVD' };
+    const TYPE_LABELS_EN = { album: 'Album', single: 'Single', dvd: 'DVD' };
+
+    function formatDescription(text) {
+      if (!text) return '';
+      return text.split(/(https?:\/\/\S+)/g).map((part, i) => {
+        if (i % 2 === 1) {
+          const safe = esc(part);
+          return `<a href="${safe}" target="_blank" rel="noopener" class="dpage-desc-link">${safe}</a>`;
+        }
+        return esc(part).replace(/\n/g, '<br>');
+      }).join('');
+    }
+
+    // ─── HAMBURGER ───
+    const hamburger = document.getElementById('hamburger');
+    const mobileNav = document.getElementById('mobileNav');
+
+    function closeMobileNav() {
+      mobileNav.classList.remove('open');
+      hamburger.classList.remove('open');
+      hamburger.setAttribute('aria-label', 'メニューを開く');
+      document.body.style.overflow = '';
+    }
+
+    hamburger.addEventListener('click', () => {
+      const isOpen = mobileNav.classList.toggle('open');
+      hamburger.classList.toggle('open', isOpen);
+      hamburger.setAttribute('aria-label', isOpen ? 'メニューを閉じる' : 'メニューを開く');
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    });
+
+    mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMobileNav));
+    mobileNav.addEventListener('click', e => { if (e.target === mobileNav) closeMobileNav(); });
+
+    // ─── MODAL ───
+    const modal   = document.getElementById('dpageModal');
+    const modalImg   = document.getElementById('dpageModalImg');
+    const modalType  = document.getElementById('dpageModalType');
+    const modalTitle = document.getElementById('dpageModalTitle');
+    const modalDate  = document.getElementById('dpageModalDate');
+    const modalDesc  = document.getElementById('dpageModalDesc');
+
+    function openModal(item) {
+      const dateStr = (item.release_date || '').replace(/-/g, '.').slice(0, 10);
+      modalImg.src     = `images/discography/${item.jacket_image}`;
+      modalImg.alt     = item.title;
+      modalType.textContent  = TYPE_LABELS_EN[item.type] || item.type;
+      modalTitle.textContent = item.title;
+      modalDate.textContent  = dateStr;
+      modalDesc.innerHTML    = formatDescription(item.description || '');
+      document.querySelector('.dpage-modal-box').scrollTop = 0;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('dpageModalClose').addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+    // ─── FILTER ───
+    let activeFilter = 'all';
+
+    function applyFilter(filter) {
+      activeFilter = filter;
+      document.querySelectorAll('.dpage-card').forEach(card => {
+        const show = filter === 'all' || card.dataset.type === filter;
+        card.style.display = show ? '' : 'none';
+      });
+      document.querySelectorAll('.dpage-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+      });
+    }
+
+    document.querySelectorAll('.dpage-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => applyFilter(btn.dataset.filter));
+    });
+
+    // ─── GRID RENDER ───
+    function renderGrid(items) {
+      const grid = document.getElementById('dpageGrid');
+      grid.innerHTML = '';
+
+      if (!items.length) {
+        const msg = document.createElement('p');
+        msg.className = 'dpage-empty';
+        msg.textContent = '作品情報がありません';
+        grid.appendChild(msg);
+        return;
+      }
+
+      items.forEach(item => {
+        const dateStr = (item.release_date || '').replace(/-/g, '.').slice(0, 10);
+        const label   = TYPE_LABELS[item.type] || item.type;
+
+        const card = document.createElement('div');
+        card.className  = 'dpage-card';
+        card.dataset.type = item.type;
+        card.innerHTML = `
+          <div class="dpage-img-wrap">
+            <img src="images/discography/${esc(item.jacket_image)}" alt="${esc(item.title)}" loading="lazy">
+            <div class="dpage-card-badge">${esc(label)}</div>
+          </div>
+          <div class="dpage-card-info">
+            <div class="dpage-card-title">${esc(item.title)}</div>
+            <div class="dpage-card-date">${esc(dateStr)}</div>
+          </div>`;
+        card.addEventListener('click', () => openModal(item));
+        grid.appendChild(card);
+      });
+
+      if (activeFilter !== 'all') applyFilter(activeFilter);
+    }
+
+    // ─── FETCH ───
+    async function init() {
+      const WORKER_URL = 'https://tokyoheroes-live.heroes777rock.workers.dev/?type=discography';
+      try {
+        const res  = await fetch(WORKER_URL);
+        if (!res.ok) throw new Error(res.status);
+        const rows = parseCSV(await res.text());
+        if (rows.length < 2) { renderGrid([]); return; }
+
+        const headers = rows[0].map(h => h.trim());
+        const items = rows.slice(1)
+          .map(row => {
+            const o = {};
+            headers.forEach((h, i) => { o[h] = (row[i] || '').trim(); });
+            return o;
+          })
+          .filter(item => item.jacket_image)
+          .sort((a, b) => b.release_date.localeCompare(a.release_date));
+
+        renderGrid(items);
+      } catch (e) {
+        console.error('Discography fetch error:', e);
+        const grid = document.getElementById('dpageGrid');
+        grid.innerHTML = '<p class="dpage-empty">データの取得に失敗しました</p>';
+      }
+    }
+
+    // ─── ESCAPE KEY ───
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeModal(); closeMobileNav(); }
+    });
+
+    init();
+  </script>
+</body>
+</html>
