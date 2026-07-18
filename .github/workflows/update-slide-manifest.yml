@@ -1,0 +1,33 @@
+name: Update Slide Manifest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'images/slide/**'
+
+jobs:
+  update-manifest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate manifest.json
+        run: |
+          cd images/slide
+          files=$(ls *.jpg *.jpeg *.png *.webp *.gif 2>/dev/null | sort | python3 -c "
+          import sys, json
+          lines = [l.strip() for l in sys.stdin if l.strip()]
+          print(json.dumps(lines, ensure_ascii=False))
+          ")
+          echo "$files" > manifest.json
+
+      - name: Commit manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add images/slide/manifest.json
+          git diff --cached --quiet || git commit -m "Auto: update slide manifest"
+          git push

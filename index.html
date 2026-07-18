@@ -398,20 +398,26 @@
       padding: 8px 60px 0;
     }
 
+    #slideshow:empty { display: none; }
+
     .slideshow-wrap {
-      display: grid;
+      position: relative;
       max-width: 960px;
       margin: 0 auto;
       background: #0a0a0a;
+      overflow: hidden;
     }
 
     .slide {
-      grid-area: 1 / 1;
+      position: absolute;
+      inset: 0;
       opacity: 0;
       transition: opacity 1s ease;
     }
 
-    .slide.active { opacity: 1; }
+    .slide:first-child { position: relative; }
+
+    .slide.active { opacity: 1; z-index: 1; }
 
     .slide img {
       width: 100%;
@@ -1532,20 +1538,7 @@
   </section>
 
   <!-- SLIDESHOW -->
-  <section id="slideshow">
-    <div class="slideshow-wrap">
-      <div class="slide active">
-        <img src="images/live/20260725.png" alt="告知画像 2026.07.25">
-      </div>
-      <div class="slide">
-        <img src="images/live/20260830.png" alt="告知画像 2026.08.30">
-      </div>
-    </div>
-    <div class="slideshow-dots">
-      <div class="slideshow-dot active" data-index="0"></div>
-      <div class="slideshow-dot" data-index="1"></div>
-    </div>
-  </section>
+  <section id="slideshow"></section>
 
   <!-- LIVE -->
   <section id="live">
@@ -1754,20 +1747,45 @@
   <script>
     // ─── SLIDESHOW ───
     (function() {
-      const slides = document.querySelectorAll('.slide');
-      const dots   = document.querySelectorAll('.slideshow-dot');
-      let current  = 0;
+      const section = document.getElementById('slideshow');
+      fetch('images/slide/manifest.json')
+        .then(r => r.json())
+        .then(files => {
+          if (!files.length) return;
+          const wrap = document.createElement('div');
+          wrap.className = 'slideshow-wrap';
+          const dotsEl = document.createElement('div');
+          dotsEl.className = 'slideshow-dots';
+          files.forEach((f, i) => {
+            const slide = document.createElement('div');
+            slide.className = 'slide' + (i === 0 ? ' active' : '');
+            const img = document.createElement('img');
+            img.src = 'images/slide/' + f;
+            img.alt = '';
+            slide.appendChild(img);
+            wrap.appendChild(slide);
+            const dot = document.createElement('div');
+            dot.className = 'slideshow-dot' + (i === 0 ? ' active' : '');
+            dot.dataset.index = i;
+            dotsEl.appendChild(dot);
+          });
+          section.appendChild(wrap);
+          section.appendChild(dotsEl);
 
-      function goTo(index) {
-        slides[current].classList.remove('active');
-        dots[current].classList.remove('active');
-        current = index % slides.length;
-        slides[current].classList.add('active');
-        dots[current].classList.add('active');
-      }
-
-      dots.forEach(dot => dot.addEventListener('click', () => goTo(Number(dot.dataset.index))));
-      setInterval(() => goTo(current + 1), 6000);
+          const slides = wrap.querySelectorAll('.slide');
+          const dots   = dotsEl.querySelectorAll('.slideshow-dot');
+          let current  = 0;
+          function goTo(index) {
+            slides[current].classList.remove('active');
+            dots[current].classList.remove('active');
+            current = index % slides.length;
+            slides[current].classList.add('active');
+            dots[current].classList.add('active');
+          }
+          dots.forEach(dot => dot.addEventListener('click', () => goTo(Number(dot.dataset.index))));
+          setInterval(() => goTo(current + 1), 6000);
+        })
+        .catch(() => {});
     })();
 
     // ─── NAV SCROLL ───
