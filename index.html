@@ -401,21 +401,18 @@
     #slideshow:empty { display: none; }
 
     .slideshow-wrap {
-      position: relative;
+      display: grid;
       max-width: 960px;
       margin: 0 auto;
       background: #0a0a0a;
-      overflow: hidden;
     }
 
     .slide {
-      position: absolute;
-      inset: 0;
+      grid-area: 1/1;
+      align-self: start;
       opacity: 0;
       transition: opacity 1s ease;
     }
-
-    .slide:first-child { position: relative; }
 
     .slide.active { opacity: 1; z-index: 1; }
 
