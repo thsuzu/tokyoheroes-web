@@ -522,6 +522,23 @@
 
     a.news-text:hover { text-decoration: underline; }
 
+    .news-text-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .news-badge {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: var(--red);
+      border: 1px solid var(--red);
+      padding: 1px 6px;
+      flex-shrink: 0;
+    }
+
     /* ─── LIVE ─── */
     #live { background: var(--dark-grey); }
 
@@ -2147,8 +2164,18 @@
         textEl.className = 'news-text';
         textEl.textContent = n.text;
 
+        const textWrap = document.createElement('div');
+        textWrap.className = 'news-text-wrap';
+        if (n.badge) {
+          const badgeEl = document.createElement('span');
+          badgeEl.className = 'news-badge';
+          badgeEl.textContent = n.badge;
+          textWrap.appendChild(badgeEl);
+        }
+        textWrap.appendChild(textEl);
+
         item.appendChild(dateEl);
-        item.appendChild(textEl);
+        item.appendChild(textWrap);
         list.appendChild(item);
       });
 
