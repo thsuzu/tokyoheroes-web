@@ -1279,6 +1279,50 @@
       color: var(--red);
     }
 
+    /* ─── ITEM LIGHTBOX ─── */
+    .item-img-wrap { cursor: pointer; }
+
+    .item-card--wide { grid-column: 1 / -1; }
+    .item-card--wide .item-img-wrap {
+      aspect-ratio: auto;
+      max-height: 480px;
+    }
+    .item-card--wide .item-img-wrap img { object-fit: contain; }
+
+    .item-lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .item-lightbox.active { opacity: 1; pointer-events: all; }
+    .item-lightbox img {
+      max-width: 90vw;
+      max-height: 88vh;
+      object-fit: contain;
+      display: block;
+    }
+    .item-lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      background: transparent;
+      border: 1px solid #444;
+      color: #fff;
+      width: 40px;
+      height: 40px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .item-lightbox-close:hover { border-color: var(--red); color: var(--red); }
+
     /* ─── INFORMATION ─── */
     #information { background: var(--black); border-top: 1px solid #1f1f1f; }
 
@@ -1661,6 +1705,15 @@
           <div class="item-price">各 ¥ 1,000</div>
         </div>
       </div>
+      <div class="item-card item-card--wide reveal">
+        <div class="item-img-wrap">
+          <img src="images/ITEM/goods_1009drop2.png" alt="10/9公演から販売開始のNEWアイテム！">
+        </div>
+        <div class="item-info">
+          <div class="item-name">10/9公演から販売開始のNEWアイテム！</div>
+          <div class="item-price">画像参照</div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1707,6 +1760,12 @@
   </footer>
 
   <!-- LIVE MODAL -->
+  <!-- ITEM LIGHTBOX -->
+  <div class="item-lightbox" id="itemLightbox">
+    <button class="item-lightbox-close" id="itemLightboxClose">✕</button>
+    <img id="itemLightboxImg" src="" alt="">
+  </div>
+
   <div class="live-modal-overlay" id="liveModal">
     <div class="live-modal-container">
       <div class="live-modal-header">
@@ -2176,6 +2235,38 @@
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
     // ─── ESCAPE KEY ───
+    // ─── ITEM LIGHTBOX ───
+    (function() {
+      const lightbox   = document.getElementById('itemLightbox');
+      const lightboxImg = document.getElementById('itemLightboxImg');
+      const closeBtn   = document.getElementById('itemLightboxClose');
+
+      function openItemLightbox(src, alt) {
+        lightboxImg.src = src;
+        lightboxImg.alt = alt;
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeItemLightbox() {
+        lightbox.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      document.querySelectorAll('.item-img-wrap').forEach(wrap => {
+        wrap.addEventListener('click', () => {
+          const img = wrap.querySelector('img');
+          if (img) openItemLightbox(img.src, img.alt);
+        });
+      });
+
+      closeBtn.addEventListener('click', closeItemLightbox);
+      lightbox.addEventListener('click', e => { if (e.target === lightbox || e.target === lightboxImg) closeItemLightbox(); });
+
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeItemLightbox();
+      });
+    })();
+
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
       closeMemberModal();
