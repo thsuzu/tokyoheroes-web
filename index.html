@@ -474,6 +474,32 @@
       border: none;
     }
 
+    /* ─── YT PICKUP ─── */
+    #yt-pickup {
+      padding: 48px 0 40px;
+      background: var(--black);
+    }
+
+    .yt-pickup-wrap {
+      max-width: 840px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .yt-pickup-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+    }
+
+    .yt-pickup-frame iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
     /* ─── NEWS ─── */
     #news {
       background: var(--black);
@@ -1585,6 +1611,15 @@
     </div>
   </section>
 
+
+  <!-- YT PICKUP -->
+  <section id="yt-pickup">
+    <div class="yt-pickup-wrap">
+      <div class="yt-pickup-frame">
+        <iframe src="https://www.youtube.com/embed/kVf6VuBk4yY?si=ExRLwL74fl9NYVgJ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
+    </div>
+  </section>
 
   <!-- NEWS -->
   <section id="news">
